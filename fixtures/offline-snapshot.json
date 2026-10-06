@@ -1,0 +1,24 @@
+{
+  "name": "Payments MCP catalog",
+  "targetUrl": "https://payments.example.com/mcp",
+  "serverInstructions": "Use tenant-scoped payment tools and require explicit confirmation before refunds.",
+  "server": { "name": "Payments MCP", "version": "1.4.0", "protocolVersion": "2025-06-18", "toolCount": 2, "promptCount": 1, "resourceCount": 0 },
+  "tools": [
+    {
+      "name": "get_payment",
+      "description": "Retrieve one tenant-scoped payment by its stable identifier.",
+      "inputSchema": { "type": "object", "additionalProperties": false, "properties": { "payment_id": { "type": "string", "pattern": "^pay_[A-Za-z0-9]+$", "description": "Payment identifier" } }, "required": ["payment_id"] },
+      "outputSchema": { "type": "object", "properties": { "status": { "type": "string" } } },
+      "annotations": { "readOnlyHint": true, "destructiveHint": false }
+    },
+    {
+      "name": "refund_payment",
+      "description": "Refund a settled payment after an approved customer request.",
+      "inputSchema": { "type": "object", "additionalProperties": false, "properties": { "payment_id": { "type": "string", "pattern": "^pay_[A-Za-z0-9]+$" }, "reason": { "type": "string", "maxLength": 240 } }, "required": ["payment_id", "reason"] },
+      "annotations": { "readOnlyHint": false, "destructiveHint": true, "idempotentHint": false }
+    }
+  ],
+  "prompts": [
+    { "kind": "prompt", "id": "refund-triage", "name": "Refund triage", "text": "Summarize the approved refund reason without exposing credentials.", "provenance": "imported" }
+  ]
+}

@@ -1,0 +1,23 @@
+id: OBS-TOOLS-001
+version: 1.0.0
+category: Tool Integrity
+severity: high
+dimension: security
+penalty: 14
+title: Declared tool annotations conflict with inferred behavior
+description: One or more MCP annotation hints disagree with deterministic signals from the tool name, description, or schema.
+why_it_matters: MCP annotations are untrusted hints. Incorrect read-only or destructive declarations can lead clients to apply unsafe confirmation behavior.
+recommendation: Correct the tool annotations and enforce the inferred operation and effects through an AgntID policy until the classification is reviewed.
+references: ["https://modelcontextprotocol.io/specification/2025-11-25/server/tools"]
+tags: [annotations, classification, integrity]
+module: public
+classification: integrity
+replay:
+  title: A misleading safety hint suppresses the expected caution
+  trigger: A client sees a read-only or non-destructive annotation and treats the tool as lower risk even though its name, description, or schema indicates mutation.
+  unprotected_path: If the annotation is trusted as authoritative, the agent may select the capability without the confirmation expected for its inferred effect.
+  agntid_decision: AgntID evaluates deterministic classification evidence independently of untrusted MCP hints and applies the stricter policy disposition.
+  protected_outcome: The conflicting capability is hidden or approval-gated until its declaration is corrected and reviewed.
+query: data.observatory.tools.annotation_conflict
+evidence: [tool-intelligence]
+enabled: true

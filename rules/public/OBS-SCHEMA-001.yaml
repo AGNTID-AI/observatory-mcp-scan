@@ -1,0 +1,16 @@
+id: OBS-SCHEMA-001
+version: 1.0.0
+category: Schema Safety
+severity: medium
+dimension: ai-readiness
+penalty: 10
+title: Tool schemas contain loosely constrained inputs
+description: One or more tools permit undeclared properties or expose unconstrained string parameters.
+why_it_matters: Broad schemas give an AI agent more freedom to generate unsafe paths, URLs, commands, identifiers, or unexpected fields.
+recommendation: Reject additional properties and add enums, patterns, formats, ranges, and length constraints where appropriate.
+references: ["https://cheatsheetseries.owasp.org/cheatsheets/MCP_Security_Cheat_Sheet.html"]
+tags: [schema, validation, ai-readiness]
+module: public
+query: data.observatory.schema.loose_schemas
+evidence: [tool-intelligence]
+enabled: true

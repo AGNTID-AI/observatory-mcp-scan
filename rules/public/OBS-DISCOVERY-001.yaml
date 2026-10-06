@@ -1,0 +1,16 @@
+id: OBS-DISCOVERY-001
+version: 1.0.0
+category: Operational
+severity: high
+dimension: operational
+penalty: 100
+title: MCP session could not be established
+description: None of the configured identities completed MCP initialization. The endpoint may require authentication even when it is reachable.
+why_it_matters: Protocol, tool, and AI-readiness claims cannot be established until at least one identity initializes an MCP session.
+recommendation: If the endpoint returned an authentication challenge, connect OAuth or supply the required token and rescan. Otherwise verify the URL and network route; from Docker, use host.docker.internal for a server running on the host.
+references: []
+tags: [discovery, availability]
+module: public
+query: data.observatory.discovery.unreachable
+evidence: [discovery]
+enabled: true

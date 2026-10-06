@@ -1,0 +1,16 @@
+id: OBS-AI-001
+version: 1.0.0
+category: Documentation Quality
+severity: medium
+dimension: ai-readiness
+penalty: 10
+title: Tool descriptions are incomplete
+description: One or more tools do not include a useful description.
+why_it_matters: Agents rely on descriptions to select tools accurately and avoid unsafe calls.
+recommendation: Add concise, action-oriented descriptions that explain intent, side effects, and constraints.
+references: []
+tags: [ai-readiness, documentation]
+module: public
+query: data.observatory.ai.missing_descriptions
+evidence: [context]
+enabled: true

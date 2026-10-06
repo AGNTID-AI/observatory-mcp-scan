@@ -1,0 +1,16 @@
+id: OBS-DRIFT-002
+version: 1.0.0
+category: Catalog Governance
+severity: medium
+dimension: ai-readiness
+penalty: 8
+title: Tool declarations drifted from the prior catalog
+description: One or more advertised tools were added, removed, or modified since the previous assessment.
+why_it_matters: Catalog changes can invalidate prompts, cached schemas, approvals, and agent selection assumptions.
+recommendation: Review the field-level change list and establish an approved AgntID catalog fingerprint in deployment policy.
+references: []
+tags: [drift, catalog, lifecycle]
+module: public
+query: data.observatory.drift.catalog_changed
+evidence: [catalog-drift]
+enabled: true

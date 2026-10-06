@@ -1,0 +1,17 @@
+id: OBS-OAUTH-003
+version: 1.0.0
+category: OAuth Security
+severity: high
+dimension: security
+penalty: 15
+title: PKCE S256 is not advertised
+description: The authorization server metadata does not advertise the S256 PKCE challenge method required for the MCP authorization-code flow.
+why_it_matters: Without PKCE S256, an intercepted authorization code may be redeemed by a different client and standards-compliant MCP clients must refuse the flow.
+recommendation: Enable PKCE and advertise code_challenge_methods_supported containing S256 in OAuth and OpenID discovery metadata.
+references: ["https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization", "https://www.rfc-editor.org/rfc/rfc7636"]
+tags: [oauth, pkce, authorization-code]
+module: public
+query: data.observatory.oauth.pkce_s256_missing
+evidence: [oauth-posture]
+enabled: true
+classification: posture

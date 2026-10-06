@@ -1,0 +1,17 @@
+id: OBS-OAUTH-004
+version: 1.0.0
+category: OAuth Readiness
+severity: medium
+dimension: protocol
+penalty: 6
+title: No zero-configuration client registration path is advertised
+description: The authorization server advertises neither Dynamic Client Registration nor Client ID Metadata Documents.
+why_it_matters: New MCP clients require manual client provisioning, making secure evaluation and broad ecosystem interoperability harder to operate consistently.
+recommendation: Support Client ID Metadata Documents where possible or expose a controlled RFC 7591 registration endpoint; otherwise document pre-registration clearly.
+references: ["https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization", "https://www.rfc-editor.org/rfc/rfc7591"]
+tags: [oauth, dcr, client-registration, interoperability]
+module: public
+query: data.observatory.oauth.registration_path_missing
+evidence: [oauth-posture]
+enabled: true
+classification: readiness

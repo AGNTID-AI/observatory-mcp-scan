@@ -1,0 +1,16 @@
+id: OBS-AUTH-001
+version: 1.0.0
+category: Authentication
+severity: high
+dimension: security
+penalty: 20
+title: Anonymous MCP access is enabled
+description: The server accepted MCP initialization without authentication.
+why_it_matters: Anonymous clients may enumerate capabilities and sensitive tool metadata.
+recommendation: Require OAuth or a short-lived bearer credential before establishing an MCP session.
+references: ["https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization"]
+tags: [authentication, anonymous]
+module: public
+query: data.observatory.auth.anonymous
+evidence: [authentication]
+enabled: true

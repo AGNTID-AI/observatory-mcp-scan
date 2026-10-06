@@ -1,0 +1,16 @@
+id: OBS-DRIFT-001
+version: 1.0.0
+category: Catalog Governance
+severity: high
+dimension: security
+penalty: 15
+title: High-risk catalog drift requires policy review
+description: A new or changed capability has a high-impact classification, annotation change, or policy-relevant contract change compared with the last assessment.
+why_it_matters: A previously approved tool name can acquire materially different effects or inputs without a corresponding policy review.
+recommendation: Quarantine changed capabilities, invalidate prior approvals, and promote the new fingerprint only after AgntID policy review.
+references: []
+tags: [drift, catalog, policy, supply-chain]
+module: public
+query: data.observatory.drift.high_risk_changes
+evidence: [catalog-drift]
+enabled: true

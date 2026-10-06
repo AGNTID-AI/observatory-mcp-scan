@@ -1,0 +1,414 @@
+openapi: 3.1.0
+info:
+  title: AgntID Observatory API
+  version: 0.1.0
+  description: Protocol-neutral assessment orchestration and MCP intelligence API.
+servers:
+  - url: /api/v1
+paths:
+  /assessments:
+    get:
+      operationId: listAssessments
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+        - { name: cursor, in: query, schema: { type: string } }
+      responses:
+        "200": { description: Assessment page, content: { application/json: { schema: { $ref: "#/components/schemas/AssessmentPage" } } } }
+    post:
+      operationId: createAssessment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateAssessment" }
+      responses:
+        "202": { description: Assessment queued, content: { application/json: { schema: { $ref: "#/components/schemas/QueuedAssessment" } } } }
+        "422": { $ref: "#/components/responses/Problem" }
+  /assessments/{assessmentId}:
+    parameters: [ { $ref: "#/components/parameters/AssessmentId" } ]
+    get:
+      operationId: getAssessment
+      responses:
+        "200": { description: Assessment detail, content: { application/json: { schema: { $ref: "#/components/schemas/Assessment" } } } }
+        "404": { $ref: "#/components/responses/Problem" }
+  /assessments/{assessmentId}/cancel:
+    parameters: [ { $ref: "#/components/parameters/AssessmentId" } ]
+    post:
+      operationId: cancelAssessment
+      responses: { "202": { description: Cancellation requested } }
+  /assessments/{assessmentId}/events:
+    parameters:
+      - { $ref: "#/components/parameters/AssessmentId" }
+      - { name: after, in: query, schema: { type: integer, format: uint64 } }
+    get:
+      operationId: streamAssessmentEvents
+      responses:
+        "200": { description: Resumable assessment event stream, content: { text/event-stream: { schema: { type: string } } } }
+  /assessments/{assessmentId}/artifacts/{artifactId}:
+    parameters:
+      - { $ref: "#/components/parameters/AssessmentId" }
+      - { name: artifactId, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: downloadArtifact
+      responses: { "200": { description: Generated assessment artifact } }
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      responses: { "200": { description: Workspace assessment summary } }
+  /rules:
+    get:
+      operationId: listRules
+      responses: { "200": { description: Loaded rule metadata, content: { application/json: { schema: { $ref: "#/components/schemas/RulePage" } } } } }
+  /settings:
+    get:
+      operationId: getEffectiveSettings
+      responses: { "200": { description: Effective bounded configuration } }
+  /oauth/sessions:
+    post:
+      operationId: createOAuthSession
+      description: Discover OAuth metadata and begin a short-lived DCR plus PKCE authorization flow.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [targetUrl, label]
+              properties:
+                targetUrl: { type: string, format: uri }
+                label: { type: string, minLength: 1, maxLength: 64 }
+      responses:
+        "201": { description: OAuth session created, content: { application/json: { schema: { $ref: "#/components/schemas/OAuthSession" } } } }
+        "422": { $ref: "#/components/responses/Problem" }
+  /oauth/sessions/{oauthSessionId}:
+    parameters: [ { name: oauthSessionId, in: path, required: true, schema: { type: string, format: uuid } } ]
+    get:
+      operationId: getOAuthSession
+      responses:
+        "200": { description: OAuth session status, content: { application/json: { schema: { $ref: "#/components/schemas/OAuthSession" } } } }
+        "404": { $ref: "#/components/responses/Problem" }
+  /oauth/sessions/{oauthSessionId}/cancel:
+    parameters: [ { name: oauthSessionId, in: path, required: true, schema: { type: string, format: uuid } } ]
+    post:
+      operationId: cancelOAuthSession
+      responses: { "202": { description: OAuth session canceled } }
+  /oauth/callback:
+    get:
+      operationId: completeOAuthCallback
+      parameters:
+        - { name: code, in: query, schema: { type: string } }
+        - { name: state, in: query, required: true, schema: { type: string } }
+        - { name: iss, in: query, schema: { type: string, format: uri } }
+        - { name: error, in: query, schema: { type: string } }
+        - { name: error_description, in: query, schema: { type: string } }
+      responses: { "200": { description: Browser-safe OAuth completion page }, "400": { description: Invalid or expired callback } }
+components:
+  parameters:
+    AssessmentId: { name: assessmentId, in: path, required: true, schema: { type: string, format: uuid } }
+  responses:
+    Problem:
+      description: RFC 9457-style problem
+      content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } }
+  schemas:
+    Problem:
+      type: object
+      required: [title, status]
+      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string } }
+    Target:
+      type: object
+      required: [protocol, url]
+      properties: { protocol: { type: string, const: mcp }, url: { type: string, format: uri }, host: { type: string } }
+    Credentials:
+      type: object
+      properties:
+        bearerToken: { type: string, writeOnly: true }
+        headers: { type: object, additionalProperties: { type: string }, writeOnly: true }
+    CredentialProfile:
+      allOf:
+        - { $ref: "#/components/schemas/Credentials" }
+        - type: object
+          required: [label]
+          properties:
+            label: { type: string, minLength: 1, maxLength: 64, description: Human-readable identity label used only in the assessment. }
+            oauthSessionId: { type: string, format: uuid, description: Authorized one-time OAuth session. Mutually exclusive with bearerToken and headers. }
+    CreateAssessment:
+      type: object
+      required: [mode, target]
+      properties:
+        mode: { type: string, enum: [live, sample, offline] }
+        target: { $ref: "#/components/schemas/Target" }
+        credentials: { $ref: "#/components/schemas/Credentials" }
+        credentialProfiles:
+          type: array
+          maxItems: 4
+          description: Optional credentials tested in isolated MCP sessions. Anonymous is always assessed.
+          items: { $ref: "#/components/schemas/CredentialProfile" }
+        snapshot: { $ref: "#/components/schemas/OfflineSnapshot" }
+    OfflineSnapshot:
+      type: object
+      description: Metadata-only declaration accepted in offline mode. No tool calls or network requests are performed.
+      required: [name, tools]
+      properties:
+        name: { type: string, minLength: 1 }
+        targetUrl: { type: string, format: uri, description: Stable target identity used for catalog drift comparison. }
+        serverInstructions: { type: string }
+        server: { type: object, additionalProperties: true }
+        tools: { type: array, maxItems: 1000, items: { $ref: "#/components/schemas/SnapshotTool" } }
+        prompts: { type: array, maxItems: 1000, items: { $ref: "#/components/schemas/ContentItem" } }
+        resources: { type: array, maxItems: 1000, items: { $ref: "#/components/schemas/ContentItem" } }
+    SnapshotTool:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        inputSchema: { type: object, additionalProperties: true }
+        outputSchema: { type: object, additionalProperties: true }
+        annotations: { type: object, additionalProperties: true }
+    ContentItem:
+      type: object
+      required: [kind, id]
+      properties:
+        kind: { type: string }
+        id: { type: string }
+        name: { type: string }
+        text: { type: string }
+        uri: { type: string }
+        mimeType: { type: string }
+        provenance: { type: string, enum: [measured, imported, sample, inferred, unavailable] }
+    QueuedAssessment:
+      type: object
+      required: [assessmentId, status, eventsUrl]
+      properties: { assessmentId: { type: string, format: uuid }, status: { type: string, const: queued }, eventsUrl: { type: string } }
+    RiskProfile:
+      type: object
+      required: [critical, high, medium, low, info]
+      properties: { critical: { type: integer }, high: { type: integer }, medium: { type: integer }, low: { type: integer }, info: { type: integer } }
+    AssessmentSummary:
+      type: object
+      required: [id, mode, target, status, connectionStatus, progress, overallScore, coverage, risk, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        mode: { type: string, enum: [live, sample, offline] }
+        target: { $ref: "#/components/schemas/Target" }
+        status: { type: string, enum: [queued, running, completed, partial, failed, canceled] }
+        connectionStatus: { type: string, enum: [pending, connected, authentication-required, connection-failed, not-applicable, unknown], description: Live MCP session outcome, kept separate from assessment pipeline completion. }
+        progress: { type: integer, minimum: 0, maximum: 100 }
+        overallScore: { type: integer, minimum: 0, maximum: 100 }
+        coverage: { type: number, minimum: 0, maximum: 100 }
+        risk: { $ref: "#/components/schemas/RiskProfile" }
+        createdAt: { type: string, format: date-time }
+        completedAt: { type: string, format: date-time }
+    AssessmentPage:
+      type: object
+      required: [items]
+      properties: { items: { type: array, items: { $ref: "#/components/schemas/AssessmentSummary" } }, nextCursor: { type: string } }
+    Assessment:
+      allOf:
+        - { $ref: "#/components/schemas/AssessmentSummary" }
+        - type: object
+          description: Full assessment including engine runs, findings, evidence, profiles, scorecard, context, and artifacts.
+          properties:
+            tools: { type: array, items: { $ref: "#/components/schemas/ToolProfile" } }
+            findings: { type: array, items: { $ref: "#/components/schemas/Finding" } }
+            identityExposure: { $ref: "#/components/schemas/IdentityExposure" }
+            policySimulation: { $ref: "#/components/schemas/PolicySimulation" }
+            riskChains: { type: array, items: { $ref: "#/components/schemas/RiskChain" } }
+            contentInventory: { type: array, items: { $ref: "#/components/schemas/ContentItem" } }
+            contentIntegrity: { type: object, additionalProperties: true }
+            readiness: { type: object, additionalProperties: true }
+            catalogDrift: { type: object, additionalProperties: true }
+            oauth: { $ref: "#/components/schemas/OAuthPosture" }
+          additionalProperties: true
+    OAuthPosture:
+      type: object
+      required: [status, protected, challengePresent, resourceMetadataValid, authorizationServers, authorizationServerMetadataValid, dcrSupported, clientIdMetadataDocumentSupported, pkceS256, scopes, bearerMethods, headerBearerSupported, authorizationCompleted, authorizedIdentities, diagnostics]
+      properties:
+        status: { type: string }
+        protected: { type: boolean }
+        challengePresent: { type: boolean }
+        resourceMetadataUrl: { type: string, format: uri }
+        resourceMetadataValid: { type: boolean }
+        resource: { type: string, format: uri }
+        authorizationServers: { type: array, items: { type: string, format: uri } }
+        authorizationServerMetadataValid: { type: boolean }
+        issuer: { type: string, format: uri }
+        authorizationEndpoint: { type: string, format: uri }
+        tokenEndpoint: { type: string, format: uri }
+        registrationEndpoint: { type: string, format: uri }
+        dcrSupported: { type: boolean }
+        clientIdMetadataDocumentSupported: { type: boolean }
+        pkceS256: { type: boolean }
+        scopes: { type: array, items: { type: string } }
+        bearerMethods: { type: array, items: { type: string } }
+        headerBearerSupported: { type: boolean }
+        authorizationCompleted: { type: boolean }
+        registrationMethod: { type: string }
+        authorizedIdentities: { type: array, items: { type: string } }
+        diagnostics: { type: array, items: { type: string } }
+        assessedAt: { type: string, format: date-time }
+    OAuthSession:
+      type: object
+      required: [id, label, targetUrl, status, profile, createdAt, expiresAt]
+      properties:
+        id: { type: string, format: uuid }
+        label: { type: string }
+        targetUrl: { type: string, format: uri }
+        status: { type: string, enum: [discovering, awaiting-authorization, exchanging-token, authorized, consumed, not-required, unsupported, denied, failed, expired, canceled] }
+        authorizationUrl: { type: string, format: uri }
+        profile: { $ref: "#/components/schemas/OAuthPosture" }
+        error: { type: string }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+    ToolProfile:
+      type: object
+      required: [name, categories, risk, confidence, estimatedTokens, visibleTo, classification, schema, policyPreview]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        inputSchema: { type: object, additionalProperties: true }
+        outputSchema: { type: object, additionalProperties: true }
+        annotations: { type: object, additionalProperties: true }
+        categories: { type: array, items: { type: string } }
+        risk: { type: string }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        estimatedTokens: { type: integer }
+        fingerprint: { type: string }
+        visibleTo: { type: array, items: { type: string } }
+        classification: { type: object, additionalProperties: true }
+        schema: { $ref: "#/components/schemas/SchemaAnalysis" }
+        policyPreview: { type: object, additionalProperties: { type: object, additionalProperties: true } }
+    InputRisk:
+      type: object
+      required: [kind, path, severity, reason, constrained]
+      properties:
+        kind: { type: string, description: Inferred execution boundary such as URL, PATH, COMMAND, QUERY, or CREDENTIAL. }
+        path: { type: string }
+        severity: { type: string }
+        reason: { type: string }
+        constrained: { type: boolean, description: Whether the advertised schema declares a format, pattern, enum, or constant. }
+    SchemaAnalysis:
+      type: object
+      required: [valid, hasOutputSchema, additionalProperties, propertyCount, requiredCount, describedPropertyCount, descriptionCoverage, maxDepth, unconstrainedStringCount, sensitiveFields, dangerousFields, inputRisks, signals]
+      properties:
+        valid: { type: boolean }
+        hasOutputSchema: { type: boolean }
+        additionalProperties: { type: string }
+        propertyCount: { type: integer }
+        requiredCount: { type: integer }
+        describedPropertyCount: { type: integer }
+        descriptionCoverage: { type: number }
+        maxDepth: { type: integer }
+        unconstrainedStringCount: { type: integer }
+        sensitiveFields: { type: array, items: { type: string } }
+        dangerousFields: { type: array, items: { type: string } }
+        inputRisks: { type: array, items: { $ref: "#/components/schemas/InputRisk" } }
+        signals: { type: array, items: { type: object, additionalProperties: true } }
+    IdentityExposure:
+      type: object
+      required: [profiles, tools, comparedProfiles, catalogEquivalent, privilegeSeparationObserved, anonymousToolCount, notes]
+      properties:
+        profiles: { type: array, items: { type: object, additionalProperties: true } }
+        tools: { type: array, items: { type: object, additionalProperties: true } }
+        comparedProfiles: { type: integer }
+        catalogEquivalent: { type: boolean }
+        privilegeSeparationObserved: { type: boolean }
+        anonymousToolCount: { type: integer }
+        notes: { type: array, items: { type: string } }
+    PolicySimulation:
+      type: object
+      required: [profiles, generated, disclaimer]
+      properties:
+        profiles: { type: array, items: { type: object, additionalProperties: true } }
+        generated: { type: boolean }
+        disclaimer: { type: string }
+    RiskChain:
+      type: object
+      required: [id, title, severity, description, toolNames, signals]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        severity: { type: string }
+        description: { type: string }
+        toolNames: { type: array, items: { type: string } }
+        signals: { type: array, items: { type: string } }
+    Recommendation:
+      type: object
+      required: [id, priority, title, detail]
+      properties:
+        id: { type: string }
+        priority: { type: string }
+        title: { type: string }
+        detail: { type: string }
+        effort: { type: string }
+    PolicyReplay:
+      type: object
+      description: Metadata-derived illustrative sequence. It never represents a tool invocation or observed target enforcement.
+      required: [title, observed, trigger, unprotectedPath, agntidDecision, protectedOutcome, toolNames, disclaimer]
+      properties:
+        title: { type: string }
+        observed: { type: string }
+        trigger: { type: string }
+        unprotectedPath: { type: string }
+        agntidDecision: { type: string }
+        protectedOutcome: { type: string }
+        toolNames: { type: array, items: { type: string } }
+        disclaimer: { type: string }
+    Finding:
+      type: object
+      required: [id, ruleId, category, classification, severity, title, description, whyItMatters, recommendation, evidenceIds, confidence, provenance, penalty, dimension, toolNames]
+      properties:
+        id: { type: string }
+        ruleId: { type: string }
+        category: { type: string }
+        classification: { type: string }
+        severity: { type: string }
+        title: { type: string }
+        description: { type: string }
+        whyItMatters: { type: string }
+        recommendation: { $ref: "#/components/schemas/Recommendation" }
+        evidenceIds: { type: array, items: { type: string } }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        provenance: { type: string }
+        penalty: { type: integer }
+        dimension: { type: string }
+        toolNames: { type: array, items: { type: string }, description: Discovered tools directly implicated by the finding. }
+        references: { type: array, items: { type: string } }
+        replay: { $ref: "#/components/schemas/PolicyReplay" }
+    RuleReplay:
+      type: object
+      required: [title, trigger, unprotectedPath, agntidDecision, protectedOutcome]
+      properties:
+        title: { type: string }
+        trigger: { type: string }
+        unprotectedPath: { type: string }
+        agntidDecision: { type: string }
+        protectedOutcome: { type: string }
+    Rule:
+      type: object
+      required: [id, version, category, classification, severity, dimension, penalty, title, description, whyItMatters, recommendation, references, tags, module, query, evidence, enabled]
+      properties:
+        id: { type: string }
+        version: { type: string }
+        category: { type: string }
+        classification: { type: string }
+        severity: { type: string }
+        dimension: { type: string }
+        penalty: { type: integer }
+        title: { type: string }
+        description: { type: string }
+        whyItMatters: { type: string }
+        recommendation: { type: string }
+        references: { type: array, items: { type: string } }
+        tags: { type: array, items: { type: string } }
+        module: { type: string }
+        query: { type: string }
+        evidence: { type: array, items: { type: string } }
+        enabled: { type: boolean }
+        rego: { type: string }
+        replay: { $ref: "#/components/schemas/RuleReplay" }
+    RulePage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Rule" } }

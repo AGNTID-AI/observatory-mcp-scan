@@ -1,0 +1,16 @@
+id: OBS-OPS-001
+version: 1.0.0
+category: Operational
+severity: medium
+dimension: operational
+penalty: 10
+title: MCP endpoint latency is elevated
+description: Safe metadata probes averaged more than 500 milliseconds.
+why_it_matters: Slow discovery and initialization degrade agent startup and increase timeout risk.
+recommendation: Profile the MCP request path, remove blocking initialization work, and add bounded caching.
+references: []
+tags: [operational, latency]
+module: public
+query: data.observatory.ops.high_latency
+evidence: [operational]
+enabled: true

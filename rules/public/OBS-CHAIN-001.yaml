@@ -1,0 +1,23 @@
+id: OBS-CHAIN-001
+version: 1.0.0
+category: Capability Chain
+severity: high
+dimension: security
+penalty: 16
+title: Sensitive-data and external-communication capabilities coexist
+description: The catalog contains the ingredients for a risky multi-tool chain involving sensitive data, open-world content, and external communication.
+why_it_matters: Tool risk is contextual. Capabilities that are acceptable alone can form an exfiltration path when an agent can combine them.
+recommendation: Use AgntID policy to prevent high-risk capability combinations, require approval after untrusted-content access, and scope credentials per action.
+references: ["https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/"]
+tags: [attack-chain, exfiltration, policy]
+module: public
+classification: capability-chain
+replay:
+  title: Individually plausible tools combine into a sensitive-data egress path
+  trigger: An agent reads sensitive data, processes untrusted or open-world content, and then selects a capability that can communicate externally.
+  unprotected_path: Per-tool allow decisions can miss the risk created by the sequence and the data carried from one capability to the next.
+  agntid_decision: AgntID evaluates the action in session context, including prior sensitive access, untrusted-content exposure, destination, identity, and current tool effects.
+  protected_outcome: The risky transition is denied or requires approval and a scoped credential, while lower-risk actions can continue.
+query: data.observatory.chain.risky_combination
+evidence: [tool-intelligence]
+enabled: true

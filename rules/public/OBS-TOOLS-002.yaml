@@ -1,0 +1,23 @@
+id: OBS-TOOLS-002
+version: 1.0.0
+category: Policy Opportunity
+severity: info
+dimension: security
+penalty: 0
+title: High-impact capabilities need explicit policy
+description: The catalog contains one or more tools inferred to have destructive effects.
+why_it_matters: Destructive capability is not automatically a defect, but it should be visible, reviewed, identity-scoped, and auditable before execution.
+recommendation: Apply an AgntID protection profile and require explicit policy or approval for destructive operations.
+references: []
+tags: [destructive, policy-preview]
+module: public
+classification: policy-opportunity
+replay:
+  title: A destructive capability is selected without an explicit decision
+  trigger: A user asks an agent to clean up, remove, reset, or correct data and the model selects a visible destructive tool.
+  unprotected_path: Catalog visibility alone does not show an identity check, approval gate, or purpose-bound policy before the agent attempts the call.
+  agntid_decision: AgntID evaluates the caller, agent, tool classification, inferred effects, resource scope, and approval requirement before forwarding the request.
+  protected_outcome: The tool is hidden, denied, or held for explicit approval; the decision and context are recorded for audit.
+query: data.observatory.tools.high_impact_catalog
+evidence: [tool-intelligence]
+enabled: true

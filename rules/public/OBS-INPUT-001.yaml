@@ -1,0 +1,25 @@
+id: OBS-INPUT-001
+version: 1.0.0
+category: Input Boundary
+severity: medium
+dimension: security
+penalty: 10
+title: Agent-controlled high-impact inputs lack declared constraints
+description: One or more tool schemas expose URL, path, command, script, or query fields without a declared format, pattern, enum, or constant.
+why_it_matters: LLM-generated values can be influenced by untrusted context. When they select destinations, files, commands, or queries, weak contracts increase SSRF, traversal, injection, and unintended-target risk even if the server performs validation that discovery cannot observe.
+recommendation: Constrain the schema, validate again at execution, and use AgntID policy to restrict destinations, resources, effects, identity, and approval before forwarding the action.
+references:
+  - https://cheatsheetseries.owasp.org/cheatsheets/MCP_Security_Cheat_Sheet.html
+  - https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices
+tags: [owasp, input-validation, ssrf, injection, policy]
+module: public
+classification: input-boundary
+replay:
+  title: Untrusted context steers an agent-controlled value toward a sensitive sink
+  trigger: Content seen by the model influences a URL, path, command, script, or query argument for an otherwise legitimate tool.
+  unprotected_path: The advertised contract does not constrain the target value, so the request may reach an internal destination, sensitive path, or interpreter unless runtime validation blocks it.
+  agntid_decision: AgntID evaluates the caller, classified effect, requested resource or destination, session context, and approval requirement before the request crosses the boundary.
+  protected_outcome: Out-of-policy destinations and resources are denied or held for approval, while an auditable reason is returned to the agent.
+query: data.observatory.input.unconstrained_sinks
+evidence: [tool-intelligence]
+enabled: true

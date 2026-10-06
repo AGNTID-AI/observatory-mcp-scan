@@ -1,0 +1,162 @@
+=== RUN   TestReviewConcurrentConsume
+    review_test.go:7: one-time consume returned token to 2 concurrent callers
+--- FAIL: TestReviewConcurrentConsume (0.00s)
+=== RUN   TestReviewExpiryWithoutPolling
+    review_test.go:8: expired token remains in vault without a Get request
+--- FAIL: TestReviewExpiryWithoutPolling (0.02s)
+FAIL
+FAIL	github.com/agntid/observatory/api/internal/oauthflow	0.033s
+=== RUN   TestReviewConcurrentDial
+==================
+WARNING: DATA RACE
+Read at 0x00c00011b2c8 by goroutine 42:
+  github.com/agntid/observatory/api/internal/scanner.NetworkPolicy.Client.func1()
+      /src/internal/scanner/network.go:83 +0x144
+  net/http.(*Transport).dial()
+      /usr/local/go/src/net/http/transport.go:1278 +0xe6
+  net/http.(*Transport).dialConn()
+      /usr/local/go/src/net/http/transport.go:1783 +0xd64
+  net/http.(*Transport).dialConnFor()
+      /usr/local/go/src/net/http/transport.go:1618 +0x10f
+  net/http.(*Transport).startDialConnForLocked.func1()
+      /usr/local/go/src/net/http/transport.go:1600 +0x3c
+
+Previous write at 0x00c00011b2c8 by goroutine 41:
+  github.com/agntid/observatory/api/internal/scanner.NetworkPolicy.Client.func1()
+      /src/internal/scanner/network.go:84 +0x1dd
+  net/http.(*Transport).dial()
+      /usr/local/go/src/net/http/transport.go:1278 +0xe6
+  net/http.(*Transport).dialConn()
+      /usr/local/go/src/net/http/transport.go:1783 +0xd64
+  net/http.(*Transport).dialConnFor()
+      /usr/local/go/src/net/http/transport.go:1618 +0x10f
+  net/http.(*Transport).startDialConnForLocked.func1()
+      /usr/local/go/src/net/http/transport.go:1600 +0x3c
+
+Goroutine 42 (running) created at:
+  net/http.(*Transport).startDialConnForLocked()
+      /usr/local/go/src/net/http/transport.go:1599 +0x1e4
+  net/http.(*Transport).queueForDial()
+      /usr/local/go/src/net/http/transport.go:1572 +0x565
+  net/http.(*Transport).getConn()
+      /usr/local/go/src/net/http/transport.go:1519 +0x6e6
+  net/http.(*Transport).roundTrip()
+      /usr/local/go/src/net/http/transport.go:685 +0x1484
+  net/http.(*Transport).RoundTrip()
+      /usr/local/go/src/net/http/roundtrip.go:33 +0x38
+  net/http.send()
+      /usr/local/go/src/net/http/client.go:259 +0x8ca
+  net/http.(*Client).send()
+      /usr/local/go/src/net/http/client.go:180 +0x14c
+  net/http.(*Client).do()
+      /usr/local/go/src/net/http/client.go:729 +0x13b8
+  net/http.(*Client).Do()
+      /usr/local/go/src/net/http/client.go:587 +0x99
+  net/http.(*Client).Get()
+      /usr/local/go/src/net/http/client.go:484 +0xa9
+  github.com/agntid/observatory/api/internal/scanner.TestReviewConcurrentDial.func2()
+      /src/internal/scanner/review_test.go:3 +0xa6
+
+Goroutine 41 (running) created at:
+  net/http.(*Transport).startDialConnForLocked()
+      /usr/local/go/src/net/http/transport.go:1599 +0x1e4
+  net/http.(*Transport).queueForDial()
+      /usr/local/go/src/net/http/transport.go:1572 +0x565
+  net/http.(*Transport).getConn()
+      /usr/local/go/src/net/http/transport.go:1519 +0x6e6
+  net/http.(*Transport).roundTrip()
+      /usr/local/go/src/net/http/transport.go:685 +0x1484
+  net/http.(*Transport).RoundTrip()
+      /usr/local/go/src/net/http/roundtrip.go:33 +0x38
+  net/http.send()
+      /usr/local/go/src/net/http/client.go:259 +0x8ca
+  net/http.(*Client).send()
+      /usr/local/go/src/net/http/client.go:180 +0x14c
+  net/http.(*Client).do()
+      /usr/local/go/src/net/http/client.go:729 +0x13b8
+  net/http.(*Client).Do()
+      /usr/local/go/src/net/http/client.go:587 +0x99
+  net/http.(*Client).Get()
+      /usr/local/go/src/net/http/client.go:484 +0xa9
+  github.com/agntid/observatory/api/internal/scanner.TestReviewConcurrentDial.func2()
+      /src/internal/scanner/review_test.go:3 +0xa6
+==================
+==================
+WARNING: DATA RACE
+Read at 0x00c00011b2c8 by goroutine 56:
+  github.com/agntid/observatory/api/internal/scanner.NetworkPolicy.Client.func1()
+      /src/internal/scanner/network.go:84 +0x1c5
+  net/http.(*Transport).dial()
+      /usr/local/go/src/net/http/transport.go:1278 +0xe6
+  net/http.(*Transport).dialConn()
+      /usr/local/go/src/net/http/transport.go:1783 +0xd64
+  net/http.(*Transport).dialConnFor()
+      /usr/local/go/src/net/http/transport.go:1618 +0x10f
+  net/http.(*Transport).startDialConnForLocked.func1()
+      /usr/local/go/src/net/http/transport.go:1600 +0x3c
+
+Previous write at 0x00c00011b2c8 by goroutine 54:
+  github.com/agntid/observatory/api/internal/scanner.NetworkPolicy.Client.func1()
+      /src/internal/scanner/network.go:84 +0x1dd
+  net/http.(*Transport).dial()
+      /usr/local/go/src/net/http/transport.go:1278 +0xe6
+  net/http.(*Transport).dialConn()
+      /usr/local/go/src/net/http/transport.go:1783 +0xd64
+  net/http.(*Transport).dialConnFor()
+      /usr/local/go/src/net/http/transport.go:1618 +0x10f
+  net/http.(*Transport).startDialConnForLocked.func1()
+      /usr/local/go/src/net/http/transport.go:1600 +0x3c
+
+Goroutine 56 (running) created at:
+  net/http.(*Transport).startDialConnForLocked()
+      /usr/local/go/src/net/http/transport.go:1599 +0x1e4
+  net/http.(*Transport).queueForDial()
+      /usr/local/go/src/net/http/transport.go:1572 +0x565
+  net/http.(*Transport).getConn()
+      /usr/local/go/src/net/http/transport.go:1519 +0x6e6
+  net/http.(*Transport).roundTrip()
+      /usr/local/go/src/net/http/transport.go:685 +0x1484
+  net/http.(*Transport).RoundTrip()
+      /usr/local/go/src/net/http/roundtrip.go:33 +0x38
+  net/http.send()
+      /usr/local/go/src/net/http/client.go:259 +0x8ca
+  net/http.(*Client).send()
+      /usr/local/go/src/net/http/client.go:180 +0x14c
+  net/http.(*Client).do()
+      /usr/local/go/src/net/http/client.go:729 +0x13b8
+  net/http.(*Client).Do()
+      /usr/local/go/src/net/http/client.go:587 +0x99
+  net/http.(*Client).Get()
+      /usr/local/go/src/net/http/client.go:484 +0xa9
+  github.com/agntid/observatory/api/internal/scanner.TestReviewConcurrentDial.func2()
+      /src/internal/scanner/review_test.go:3 +0xa6
+
+Goroutine 54 (running) created at:
+  net/http.(*Transport).startDialConnForLocked()
+      /usr/local/go/src/net/http/transport.go:1599 +0x1e4
+  net/http.(*Transport).queueForDial()
+      /usr/local/go/src/net/http/transport.go:1572 +0x565
+  net/http.(*Transport).getConn()
+      /usr/local/go/src/net/http/transport.go:1519 +0x6e6
+  net/http.(*Transport).roundTrip()
+      /usr/local/go/src/net/http/transport.go:685 +0x1484
+  net/http.(*Transport).RoundTrip()
+      /usr/local/go/src/net/http/roundtrip.go:33 +0x38
+  net/http.send()
+      /usr/local/go/src/net/http/client.go:259 +0x8ca
+  net/http.(*Client).send()
+      /usr/local/go/src/net/http/client.go:180 +0x14c
+  net/http.(*Client).do()
+      /usr/local/go/src/net/http/client.go:729 +0x13b8
+  net/http.(*Client).Do()
+      /usr/local/go/src/net/http/client.go:587 +0x99
+  net/http.(*Client).Get()
+      /usr/local/go/src/net/http/client.go:484 +0xa9
+  github.com/agntid/observatory/api/internal/scanner.TestReviewConcurrentDial.func2()
+      /src/internal/scanner/review_test.go:3 +0xa6
+==================
+    testing.go:1617: race detected during execution of test
+--- FAIL: TestReviewConcurrentDial (0.01s)
+FAIL
+FAIL	github.com/agntid/observatory/api/internal/scanner	0.024s
+FAIL

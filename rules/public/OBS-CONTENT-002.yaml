@@ -1,0 +1,16 @@
+id: OBS-CONTENT-002
+version: 1.0.0
+category: Metadata Integrity
+severity: medium
+dimension: security
+penalty: 8
+title: Suspicious behavioral language appears in advertised metadata
+description: One or more metadata surfaces matched deterministic role-escape, tool-redirection, or command-execution indicators.
+why_it_matters: Even non-executed metadata can steer an agent toward a different tool or operating boundary.
+recommendation: Review the exact matched text and require approval for changed or execution-capable declarations.
+references: ["https://owasp.org/www-project-mcp-top-10/"]
+tags: [metadata, integrity, review]
+module: public
+query: data.observatory.content.medium_signals
+evidence: [content-integrity]
+enabled: true

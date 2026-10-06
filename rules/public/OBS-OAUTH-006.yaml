@@ -1,0 +1,17 @@
+id: OBS-OAUTH-006
+version: 1.0.0
+category: OAuth Security
+severity: medium
+dimension: security
+penalty: 7
+title: The MCP authorization scope contract is not advertised
+description: Neither the Bearer challenge nor protected-resource or authorization-server metadata identified scopes for MCP access.
+why_it_matters: Clients cannot request least privilege predictably, and operators have less evidence that read, write, administrative, or tenant-sensitive access is separated.
+recommendation: Publish the minimum scopes required for basic MCP discovery and use incremental consent or scope challenges for higher-impact capabilities.
+references: ["https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"]
+tags: [oauth, scopes, least-privilege, authorization]
+module: public
+query: data.observatory.oauth.scopes_missing
+evidence: [oauth-posture]
+enabled: true
+classification: exposure

@@ -1,0 +1,17 @@
+id: OBS-OAUTH-005
+version: 1.0.0
+category: OAuth Security
+severity: high
+dimension: security
+penalty: 16
+title: Unsafe bearer-token transport is advertised
+description: Protected-resource metadata advertises bearer tokens in a URI query or request body rather than restricting MCP access tokens to the Authorization header.
+why_it_matters: Tokens in URLs or bodies are more likely to leak through logs, browser history, proxies, analytics, or error traces.
+recommendation: Accept MCP access tokens only through the Authorization Bearer header and advertise the header bearer method.
+references: ["https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization", "https://www.rfc-editor.org/rfc/rfc6750"]
+tags: [oauth, bearer-token, credential-leakage]
+module: public
+query: data.observatory.oauth.unsafe_bearer_transport
+evidence: [oauth-posture]
+enabled: true
+classification: credential-boundary

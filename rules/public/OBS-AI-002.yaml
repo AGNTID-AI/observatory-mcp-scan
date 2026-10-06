@@ -1,0 +1,16 @@
+id: OBS-AI-002
+version: 1.0.0
+category: Context Efficiency
+severity: medium
+dimension: ai-readiness
+penalty: 12
+title: Initialization context is heavy
+description: Advertised MCP metadata consumes more than 15 percent of the configured context window.
+why_it_matters: A large initialization footprint reduces room for user intent, reasoning, and results.
+recommendation: Split broad servers, remove duplicate tools, and shorten schemas and descriptions without losing meaning.
+references: []
+tags: [ai-readiness, context]
+module: public
+query: data.observatory.ai.context_heavy
+evidence: [context]
+enabled: true

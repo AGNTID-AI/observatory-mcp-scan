@@ -1,0 +1,16 @@
+id: OBS-READINESS-001
+version: 1.0.0
+category: Tool Contract Readiness
+severity: medium
+dimension: ai-readiness
+penalty: 12
+title: Tool contracts are not ready for reliable policy enforcement
+description: One or more tools scored below 70 for observable description, input, output, constraint, and retry-contract quality.
+why_it_matters: Loose contracts increase tool-selection ambiguity and make precise allow, deny, validation, and approval policy harder to enforce.
+recommendation: Open the per-tool readiness evidence and strengthen the lowest-scoring declarations before production agent use.
+references: ["https://modelcontextprotocol.io/specification/2025-06-18/server/tools"]
+tags: [schema, readiness, policy]
+module: public
+query: data.observatory.readiness.low_score_tools
+evidence: [contract-readiness]
+enabled: true

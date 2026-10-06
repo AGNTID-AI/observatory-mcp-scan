@@ -1,0 +1,17 @@
+id: OBS-OAUTH-001
+version: 1.0.0
+category: OAuth Security
+severity: high
+dimension: security
+penalty: 14
+title: Protected-resource metadata could not be verified
+description: The MCP endpoint requires authorization, but Observatory could not validate RFC 9728 protected-resource metadata for it.
+why_it_matters: Clients cannot reliably bind tokens to the intended MCP resource or discover the correct authorization server when the resource contract is missing or inconsistent.
+recommendation: Publish valid OAuth Protected Resource Metadata at the endpoint-specific or root well-known location and reference it from the Bearer challenge.
+references: ["https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization", "https://www.rfc-editor.org/rfc/rfc9728"]
+tags: [oauth, protected-resource, resource-indicator, discovery]
+module: public
+query: data.observatory.oauth.resource_metadata_missing
+evidence: [oauth-posture]
+enabled: true
+classification: posture

@@ -1,0 +1,16 @@
+id: OBS-TRANSPORT-002
+version: 1.0.0
+category: Transport
+severity: medium
+dimension: security
+penalty: 8
+title: HSTS is not advertised
+description: The HTTPS endpoint does not advertise a Strict-Transport-Security policy.
+why_it_matters: Clients can be more susceptible to downgrade attempts before a secure connection is established.
+recommendation: Add a reviewed Strict-Transport-Security header at the TLS termination layer.
+references: ["https://developer.mozilla.org/docs/Web/HTTP/Headers/Strict-Transport-Security"]
+tags: [transport, headers]
+module: public
+query: data.observatory.transport.hsts_missing
+evidence: [transport]
+enabled: true

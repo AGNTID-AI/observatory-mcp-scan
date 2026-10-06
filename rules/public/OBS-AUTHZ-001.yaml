@@ -1,0 +1,23 @@
+id: OBS-AUTHZ-001
+version: 1.0.0
+category: Authorization Exposure
+severity: medium
+dimension: security
+penalty: 10
+title: Catalog separation was not observed
+description: Multiple authenticated identities received equivalent advertised tool catalogs.
+why_it_matters: Broad catalog visibility increases cognitive load and exposes high-impact capability metadata to identities that may not need it.
+recommendation: Use AgntID identity-aware tool scoping so reader, writer, and administrator identities receive only policy-eligible capabilities.
+references: ["https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"]
+tags: [authorization, identity, least-privilege]
+module: public
+classification: exposure
+replay:
+  title: A low-privilege identity receives an administrator-sized catalog
+  trigger: A reader or service identity receives the same advertised tools as a writer or administrator and the model can consider all of them.
+  unprotected_path: Even if the server later rejects execution, broad visibility increases accidental selection, prompt complexity, and capability disclosure.
+  agntid_decision: AgntID constructs the catalog from verified identity, workload, tenant, and policy so each agent sees only eligible capabilities.
+  protected_outcome: Readers receive read-only tools, writers receive bounded mutations, and administrator capabilities remain hidden or approval-gated.
+query: data.observatory.authorization.catalogs_equivalent
+evidence: [identity-exposure, authorization]
+enabled: true

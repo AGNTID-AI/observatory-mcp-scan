@@ -1,0 +1,23 @@
+id: OBS-EXPOSURE-001
+version: 1.0.0
+category: Capability Exposure
+severity: high
+dimension: security
+penalty: 20
+title: Destructive capabilities are anonymously discoverable
+description: One or more tools inferred as destructive were advertised to the anonymous identity.
+why_it_matters: Anonymous catalog exposure can reveal privileged capability names and schemas. Observatory did not invoke the tools, so executability is not claimed.
+recommendation: Require authentication before discovery and hide destructive capabilities unless an identity and policy explicitly authorize them.
+references: ["https://modelcontextprotocol.io/specification/2025-11-25/server/tools"]
+tags: [anonymous, destructive, exposure]
+module: public
+classification: exposure
+replay:
+  title: An unauthenticated session discovers a destructive capability
+  trigger: A client connects without credentials and receives the name and schema of a destructive tool in tools/list.
+  unprotected_path: The capability enters the agent's choice set before an identity-specific catalog policy is observed; executability remains unknown because Observatory does not call it.
+  agntid_decision: AgntID resolves the caller identity first and filters the catalog to capabilities explicitly allowed for that identity and purpose.
+  protected_outcome: Anonymous and low-privilege agents never receive the destructive tool metadata, reducing both exposure and accidental selection.
+query: data.observatory.exposure.anonymous_destructive
+evidence: [identity-exposure, tool-intelligence]
+enabled: true

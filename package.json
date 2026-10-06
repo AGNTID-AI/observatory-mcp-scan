@@ -1,0 +1,11 @@
+{
+  "name": "agntid-observatory",
+  "private": true,
+  "packageManager": "pnpm@8.10.5",
+  "scripts": {
+    "dev": "pnpm --dir apps/web dev",
+    "build": "pnpm --dir apps/web build",
+    "lint": "pnpm --dir apps/web lint",
+    "type-check": "pnpm --dir apps/web type-check"
+  }
+}

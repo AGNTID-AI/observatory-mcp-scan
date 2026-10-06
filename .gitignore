@@ -1,0 +1,11 @@
+.DS_Store
+.env
+node_modules/
+apps/web/.next/
+*.tsbuildinfo
+apps/api/data/
+*.db
+*.db-shm
+*.db-wal
+coverage/
+playwright-report/

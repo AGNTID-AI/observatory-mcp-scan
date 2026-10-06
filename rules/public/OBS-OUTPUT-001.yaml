@@ -1,0 +1,24 @@
+id: OBS-OUTPUT-001
+version: 1.0.0
+category: Output Trust Boundary
+severity: medium
+dimension: security
+penalty: 8
+title: Open-world tool results lack an advertised output contract
+description: One or more tools inferred to access network or open-world content do not advertise an output schema.
+why_it_matters: Tool results re-enter the model context and may contain instruction-like or attacker-controlled content. Without a declared structure, clients have less evidence for separating data from instructions or validating fields before the next action.
+recommendation: Advertise a strict output schema, return extracted structured data, and use AgntID session policy to restrict sensitive follow-on actions after untrusted-content access.
+references:
+  - https://cheatsheetseries.owasp.org/cheatsheets/MCP_Security_Cheat_Sheet.html
+tags: [owasp, output-validation, prompt-injection, open-world, policy]
+module: public
+classification: output-boundary
+replay:
+  title: Untrusted tool output influences the next sensitive action
+  trigger: A network, search, browser, or external-service tool returns text containing instruction-like content and the model considers it alongside trusted instructions.
+  unprotected_path: With no advertised result contract or sequence-aware gate, manipulated output can steer a later credential, mutation, or external-communication action.
+  agntid_decision: AgntID treats the result source as untrusted session context and evaluates the next capability transition, identity, effects, destination, and approval requirement.
+  protected_outcome: Lower-risk reading can continue, but a sensitive follow-on action is denied or paused for explicit approval with a complete audit trail.
+query: data.observatory.output.open_world_untyped
+evidence: [tool-intelligence]
+enabled: true

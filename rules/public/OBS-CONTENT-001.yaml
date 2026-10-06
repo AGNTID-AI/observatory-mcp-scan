@@ -1,0 +1,16 @@
+id: OBS-CONTENT-001
+version: 1.0.0
+category: Metadata Integrity
+severity: high
+dimension: security
+penalty: 18
+title: High-confidence unsafe instructions appear in advertised metadata
+description: One or more server, tool, prompt, resource, or schema surfaces matched deterministic credential, instruction-override, data-egress, or deception indicators.
+why_it_matters: MCP metadata enters an agent context before execution and can influence capability selection or expose sensitive context.
+recommendation: Review the matched excerpts, remove untrusted instructions, and use an approved AgntID catalog with identity-aware visibility and egress policy.
+references: ["https://owasp.org/www-project-mcp-top-10/"]
+tags: [metadata, prompt-injection, tool-poisoning, agntid-policy]
+module: public
+query: data.observatory.content.high_signals
+evidence: [content-integrity]
+enabled: true

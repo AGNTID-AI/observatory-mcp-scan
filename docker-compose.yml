@@ -1,0 +1,46 @@
+services:
+  free-mcp-report-api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      OBSERVATORY_WORKERS: "2"
+      OBSERVATORY_ALLOW_LOOPBACK: "false"
+      OBSERVATORY_OAUTH_CALLBACK_URL: "http://localhost:3000/api/v1/oauth/callback"
+    volumes:
+      - observatory-data:/app/data
+    ports:
+      - "127.0.0.1:18080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 8
+      start_period: 10s
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  free-mcp-report-web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      API_INTERNAL_URL: http://free-mcp-report-api:8080
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      free-mcp-report-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 15s
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  observatory-data:

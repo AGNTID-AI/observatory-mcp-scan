@@ -1,0 +1,16 @@
+id: OBS-TRANSPORT-001
+version: 1.0.0
+category: Transport
+severity: high
+dimension: security
+penalty: 18
+title: MCP endpoint does not use HTTPS
+description: The target endpoint is reachable over plaintext HTTP.
+why_it_matters: Credentials, tool metadata, and session identifiers may be exposed or modified in transit.
+recommendation: Terminate MCP traffic with TLS 1.2 or newer and redirect plaintext traffic to HTTPS.
+references: ["https://modelcontextprotocol.io/specification/2025-06-18/basic/transports"]
+tags: [transport, tls]
+module: public
+query: data.observatory.transport.insecure
+evidence: [transport]
+enabled: true
