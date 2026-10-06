@@ -8,14 +8,22 @@ Use it to review anonymous exposure, compare identities, inspect tool contracts,
 
 Start with the [feature guide](docs/FEATURE_GUIDE.md) for workflows, examples, and interpretation. API endpoints and payloads are described in [OpenAPI](contracts/openapi.yaml); known contract discrepancies are recorded in the release review.
 
-## Run with Docker Compose
+## Clone, build, and run with Docker Compose
+
+Requirements: Git, Docker with Docker Compose v2, and an internet connection for the initial build. Make sure Docker is running and ports 3000 and 18080 are available.
+
+Clone the source and build the application images locally:
 
 ```bash
+git clone https://github.com/AGNTID-AI/observatory-mcp-scan.git
+cd observatory-mcp-scan
 docker compose up --build -d
 docker compose ps
 ```
 
-Open [http://localhost:3000](http://localhost:3000). A realistic sample assessment is queued automatically on the first clean start. Data and generated reports are stored in the `observatory-data` volume.
+The first build downloads base images and dependencies and may take several minutes. Docker provides the Go, Node, and pnpm toolchains used by the build. Wait until `docker compose ps` shows both services as healthy, then open [http://localhost:3000](http://localhost:3000).
+
+A realistic sample assessment is queued automatically on the first clean start. Data and generated reports are stored in the `observatory-data` volume.
 
 The API is also available on `http://localhost:18080`; the web service forwards `/api/v1` to the API over the Compose network.
 
@@ -28,7 +36,9 @@ docker compose logs --tail=100
 
 Stop the stack with `docker compose down`. Its named data volume is retained. Ports 3000 and 18080 must be free; see [troubleshooting](docs/FEATURE_GUIDE.md#troubleshooting) for changing the web port.
 
-## Local development
+## Local development for contributors
+
+Use this setup when developing the API or web application directly on your machine.
 
 Requirements: Go 1.25+, Node 20+, and pnpm 8.10.5. The official MCP Go SDK v1.6.1 sets Go 1.25 as its module minimum.
 
@@ -125,4 +135,3 @@ Assessment data, generated reports, and the generated credential-encryption
 key are stored in the `free-mcp-report-data` Docker volume. The integrated host
 is intentionally public and uses Observatory's single shared workspace; do not
 use it for private assessments unless appropriate access control and workspace isolation are added.
-
