@@ -16,7 +16,7 @@ import (
 type Generator struct{ Store ports.ArtifactStore }
 
 func (g Generator) Generate(ctx context.Context, a *domain.Assessment) ([]domain.Artifact, error) {
-	canonical, err := json.MarshalIndent(a, "", "  ")
+	canonical, err := canonicalJSON(a)
 	if err != nil {
 		return nil, err
 	}
@@ -32,6 +32,11 @@ func (g Generator) Generate(ctx context.Context, a *domain.Assessment) ([]domain
 		{"executive-summary.md", "text/markdown; charset=utf-8", []byte(executiveMarkdown(a))},
 		{"technical-report.md", "text/markdown; charset=utf-8", []byte(technicalMarkdown(a))},
 		{"assessment.sarif", "application/sarif+json", sarif},
+	}
+	// The worker finalizes canonical JSON after the terminal state is known.
+	// Never publish a running snapshot as the completed report.
+	if a.Status == domain.StatusRunning {
+		specs = specs[1:]
 	}
 	artifacts := []domain.Artifact{}
 	for _, spec := range specs {
@@ -55,9 +60,41 @@ func (g Generator) Generate(ctx context.Context, a *domain.Assessment) ([]domain
 	return artifacts, nil
 }
 
+// Finalize publishes the terminal snapshot and refreshes its artifact metadata.
+// Canonical JSON excludes its own manifest entry to avoid a self-referential hash.
+func (g Generator) Finalize(ctx context.Context, a *domain.Assessment) error {
+	body, err := canonicalJSON(a)
+	if err != nil {
+		return err
+	}
+	artifact, err := g.Store.Put(ctx, a.ID, "assessment.json", "application/json", bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	for i := range a.Artifacts {
+		if a.Artifacts[i].ID == artifact.ID {
+			a.Artifacts[i] = artifact
+			return nil
+		}
+	}
+	a.Artifacts = append([]domain.Artifact{artifact}, a.Artifacts...)
+	return nil
+}
+
+func canonicalJSON(a *domain.Assessment) ([]byte, error) {
+	snapshot := *a
+	snapshot.Artifacts = make([]domain.Artifact, 0, len(a.Artifacts))
+	for _, artifact := range a.Artifacts {
+		if artifact.ID != "assessment.json" {
+			snapshot.Artifacts = append(snapshot.Artifacts, artifact)
+		}
+	}
+	return json.MarshalIndent(&snapshot, "", "  ")
+}
+
 func executiveMarkdown(a *domain.Assessment) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "# AgntID Observatory Executive Assessment\n\n**Target:** %s  \n**Overall readiness:** %d/100  \n**Assessment coverage:** %.0f%%  \n\n## Executive summary\n\n%s\n\n## Scorecard\n\n", a.Target.URL, a.Scorecard.Overall, a.Scorecard.Coverage, a.ExecutiveSummary)
+	fmt.Fprintf(&b, "# Free MCP Report — Executive Summary\n\n**Target:** %s  \n**Overall readiness:** %d/100  \n**Assessment coverage:** %.0f%%  \n\n## Executive summary\n\n%s\n\n## Scorecard\n\n", a.Target.URL, a.Scorecard.Overall, a.Scorecard.Coverage, a.ExecutiveSummary)
 	for _, d := range orderedDimensions(a) {
 		fmt.Fprintf(&b, "- **%s:** %d/100 (%.0f%% coverage)\n", d.Name, d.Score, d.Coverage)
 	}
@@ -88,10 +125,12 @@ func executiveMarkdown(a *domain.Assessment) string {
 
 func technicalMarkdown(a *domain.Assessment) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "# Technical MCP Assessment\n\n%s\n\n## Server profile\n\n- Server: %s %s\n- Protocol: %s\n- Transport: %s\n- Tools: %d\n- Prompts: %d\n- Resources: %d\n\n", a.TechnicalSummary, a.Server.Name, a.Server.Version, a.Server.ProtocolVersion, a.Server.Transport, a.Server.ToolCount, a.Server.PromptCount, a.Server.ResourceCount)
+	fmt.Fprintf(&b, "# Free MCP Report — Technical Report\n\n%s\n\n## Server profile\n\n- Server: %s %s\n- Protocol: %s\n- Transport: %s\n- Tools: %d\n- Prompts: %d\n- Resources: %d\n\n", a.TechnicalSummary, a.Server.Name, a.Server.Version, a.Server.ProtocolVersion, a.Server.Transport, a.Server.ToolCount, a.Server.PromptCount, a.Server.ResourceCount)
 	b.WriteString("## OAuth security posture\n\n")
-	if !a.OAuth.Protected {
-		b.WriteString("OAuth protection was not required by the anonymous initialization probe.\n\n")
+	if a.Mode == "offline" || a.OAuth.Status == "" || a.OAuth.Status == "not-assessed" || a.OAuth.Status == "unavailable" {
+		b.WriteString("OAuth protection was not assessed. Available metadata does not establish whether the server requires authorization.\n\n")
+	} else if !a.OAuth.Protected {
+		b.WriteString("The anonymous initialization probe did not observe an OAuth requirement. This does not establish tool-level authorization.\n\n")
 	} else {
 		fmt.Fprintf(&b, "| Control | Result |\n|---|---|\n| Protected-resource metadata | %s |\n| Authorization-server metadata | %s |\n| PKCE S256 | %s |\n| Dynamic Client Registration | %s |\n| Header bearer method | %s |\n| Scopes advertised | %s |\n\n", passFail(a.OAuth.ResourceMetadataValid), passFail(a.OAuth.AuthorizationServerMetadataValid), passFail(a.OAuth.PKCES256), available(a.OAuth.DCRSupported), passFail(a.OAuth.HeaderBearerSupported), yesNo(len(a.OAuth.Scopes) > 0))
 		fmt.Fprintf(&b, "- Issuer: %s\n- Resource: %s\n- Registration method: %s\n- Interactive OAuth identities: %s\n\n", fallback(a.OAuth.Issuer, "Unavailable"), fallback(a.OAuth.Resource, "Unavailable"), fallback(a.OAuth.RegistrationMethod, "Not completed"), fallback(strings.Join(a.OAuth.AuthorizedIdentities, ", "), "Not completed during this scan"))
@@ -284,9 +323,9 @@ func containsValue(values []string, wanted string) bool {
 }
 
 var htmlTemplate = template.Must(template.New("report").Funcs(template.FuncMap{"upper": strings.ToUpper, "join": func(v []string) string { return strings.Join(v, ", ") }, "yesno": yesNo, "catalogcomparison": catalogComparison, "inputrisks": inputRiskSummary, "outputtrust": outputTrustSummary}).Parse(`<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>AgntID Observatory Report</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Free MCP Report</title>
 <style>:root{color-scheme:light;--ink:#102238;--muted:#607086;--line:#dbe3ec;--brand:#3764f4;--surface:#f5f7fb;--good:#177a55;--good-bg:#eaf8f1;--warn-bg:#fff7e8}*{box-sizing:border-box}body{margin:0;font:15px/1.55 Inter,system-ui,sans-serif;color:var(--ink);background:var(--surface)}main{max-width:1050px;margin:40px auto;background:white;padding:48px;border:1px solid var(--line);border-radius:18px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:24px}.brand{font-weight:800;letter-spacing:-.03em}.eyebrow{color:var(--brand);font-size:12px;text-transform:uppercase;letter-spacing:.12em}.hero{display:grid;grid-template-columns:1fr 180px;gap:30px;padding:42px 0}.score{display:grid;place-items:center;border:12px solid #dce4ff;border-top-color:var(--brand);border-radius:50%;width:150px;height:150px;font-size:38px;font-weight:800}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{padding:18px;border:1px solid var(--line);border-radius:12px}.card strong{font-size:24px;display:block}.card small{color:var(--muted)}.finding{border-left:4px solid #f59e0b;padding:8px 18px;margin:18px 0}.high,.critical{border-color:#e54d5d}.low{border-color:#3ca36c}.muted{color:var(--muted)}table{width:100%;border-collapse:collapse}td,th{text-align:left;border-bottom:1px solid var(--line);padding:10px;vertical-align:top}.section{margin-top:34px}.section-lead{max-width:820px;color:var(--muted);margin:0 0 12px}.why{border-left:3px solid var(--brand);background:#f4f6ff;padding:11px 14px;margin:12px 0;border-radius:0 8px 8px 0}.result{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0}.result.good{background:var(--good-bg);border-color:#bce7d2}.result.good strong{color:var(--good);display:block}.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.legend>div{border:1px solid var(--line);border-radius:9px;padding:11px}.legend strong{display:block;font-size:13px}.legend span{color:var(--muted);font-size:12px}.change{border:1px solid var(--line);border-radius:12px;padding:15px 17px;margin:10px 0}.change-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.change-head h3{margin:0 auto 0 0}.badge{display:inline-block;padding:3px 8px;border-radius:999px;background:#edf1ff;color:var(--brand);font-size:11px}.badge.severity{background:var(--warn-bg);color:#995900}.pill{display:inline-block;padding:3px 8px;border-radius:999px;background:#edf1ff;color:var(--brand);font-size:12px;margin:2px}.chain{border:1px solid var(--line);border-radius:12px;padding:16px;margin:10px 0}.report-replay{margin-top:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}.report-replay summary{cursor:pointer;padding:11px 13px;color:var(--brand);font-weight:700}.report-replay[open] summary{border-bottom:1px solid var(--line)}.report-replay>div,.report-replay>ol,.report-replay>p{margin-left:13px;margin-right:13px}.report-replay ol{padding-left:20px}.report-replay li{margin:8px 0}@media(max-width:760px){main{margin:0;padding:24px}.hero{grid-template-columns:1fr}.grid,.legend{grid-template-columns:1fr 1fr}}@media print{body{background:#fff}main{margin:0;border:0}.report-replay>summary{display:none}.report-replay>*{display:block}}</style></head>
-<body><main><header><div><div class="brand">AgntID Observatory</div><div class="muted">Powered by AgntID</div></div><div class="eyebrow">{{.Mode}} assessment</div></header>
+<body><main><header><div><div class="brand">Free MCP Report</div><div class="muted">Powered by AgntID Observatory</div></div><div class="eyebrow">{{.Mode}} assessment</div></header>
 <section class="hero"><div><div class="eyebrow">Executive readiness assessment</div><h1>{{.Target.URL}}</h1><p class="muted">{{.ExecutiveSummary}}</p></div><div class="score">{{.Scorecard.Overall}}</div></section>
 <section class="grid">{{range .Dimensions}}<div class="card"><span class="muted">{{.Name}}</span><strong>{{.Score}}</strong><small>{{printf "%.0f" .Coverage}}% coverage</small></div>{{end}}</section>
 <section class="section"><h2>Identity and policy snapshot</h2><div class="grid"><div class="card"><span class="muted">Connected profiles</span><strong>{{.Detail.IdentityExposure.ComparedProfiles}}</strong></div><div class="card"><span class="muted">Anonymous tools</span><strong>{{.Detail.IdentityExposure.AnonymousToolCount}}</strong></div><div class="card"><span class="muted">Catalog separation</span><strong>{{catalogcomparison .Detail.IdentityExposure.ComparedProfiles .Detail.IdentityExposure.PrivilegeSeparationObserved}}</strong></div><div class="card"><span class="muted">Potential chains</span><strong>{{len .Detail.RiskChains}}</strong></div></div></section>

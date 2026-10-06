@@ -85,7 +85,7 @@ export default function NewAssessment(){
     }catch(error){setSnapshot(null);toast.error(error instanceof Error?error.message:"This file could not be read as saved MCP server data.")}
   };
   return <div className="new-assessment-page">
-    <PageHeading eyebrow="Free readiness assessment" title="Prepare your MCP readiness assessment" description="Provide the endpoint and access perspectives you want represented. Observatory will turn the declared MCP surface into a clear, evidence-based report."/>
+    <PageHeading eyebrow="Free MCP Report" title="Generate your MCP report" description="Connect a server or upload saved metadata to review advertised capabilities, security signals, and tool readiness. We never execute your tools."/>
     {rerunNeedsSignIn&&<div className="notice rerun-notice"><KeyRound size={16}/><span><strong>Reconnect this identity for the new assessment.</strong><br/>Access details are never copied from an earlier report.</span></div>}
     <form onSubmit={submit} className="new-assessment-layout">
       <div className="assessment-form-steps">
@@ -132,7 +132,7 @@ export default function NewAssessment(){
                 </div>)}
               </div>
               <button disabled={profiles.length>=4} className="button add-identity-button" type="button" onClick={()=>setProfiles(items=>[...items,newProfile(nextProfileID.current++,["Writer","Administrator","Service account"][Math.min(items.length,2)])])}><Plus size={13}/> Add another identity <span>{profiles.length}/4</span></button>
-              <div className="credential-privacy"><LockKeyhole size={14}/><span>Access details are encrypted for the assessment, excluded from evidence, and removed when processing ends.</span></div>
+              <div className="credential-privacy"><LockKeyhole size={14}/><span>Use credentials scoped to this server. Access details are encrypted for the assessment; reports are shared with everyone who can access this workspace.</span></div>
             </>}
           </div>
         </section>
@@ -140,7 +140,7 @@ export default function NewAssessment(){
 
       <aside className="assessment-summary-column">
         <div className="card assessment-coverage-card">
-          <div className="section-label">Your readiness report</div><h2>Assessment Coverage</h2><p>One assessment brings the observable MCP posture into a structured report.</p>
+          <div className="section-label">Your MCP report</div><h2>Assessment Coverage</h2><p>One assessment brings the observable MCP posture into a structured report.</p>
           <div className="assessment-coverage-list">
             <div><span><Network size={15}/></span><div><strong>Protocol &amp; metadata</strong><small>Discovery, transport, capabilities, prompts, and resources</small></div></div>
             <div><span><Braces size={15}/></span><div><strong>Contracts &amp; schemas</strong><small>Descriptions, annotations, constraints, and output declarations</small></div></div>
@@ -149,7 +149,7 @@ export default function NewAssessment(){
             <div><span><FileCheck2 size={15}/></span><div><strong>Evidence-based report</strong><small>Readiness scores, findings, and practical recommendations</small></div></div>
           </div>
           <div className="report-safety"><ShieldCheck size={15}/><span><strong>Zero tool execution</strong>Visibility is assessed without proving or attempting executability.</span></div>
-          <button disabled={submitting} aria-busy={submitting} className="button primary start-assessment-button">{submitting?<><LoaderCircle className="animate-spin" size={15}/>Starting assessment…</>:<>Start Assessment <ArrowRight size={15}/></>}</button>
+          <button disabled={submitting} aria-busy={submitting} className="button primary start-assessment-button">{submitting?<><LoaderCircle className="animate-spin" size={15}/>Starting assessment…</>:<>Generate your MCP report <ArrowRight size={15}/></>}</button>
           <p className="assessment-submit-note">You can review progress as each report section is prepared.</p>
         </div>
       </aside>

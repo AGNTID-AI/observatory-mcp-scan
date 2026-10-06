@@ -9,3 +9,4 @@ apps/api/data/
 *.db-wal
 coverage/
 playwright-report/
+test-results/

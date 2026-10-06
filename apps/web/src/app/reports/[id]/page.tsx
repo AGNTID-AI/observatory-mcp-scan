@@ -38,7 +38,9 @@ export default function Report({ params }: { params: Promise<{ id: string }> }) 
   if (!assessment) return <div className="card report-loading" role="status" aria-live="polite" aria-busy="true"><span className="skeleton" aria-hidden="true"/><div><strong>Preparing assessment report</strong><p>Organizing the latest evidence and recommendations.</p></div></div>;
 
   const a = assessment;
-  const band = scoreBand(a.scorecard.overall);
+  const band = a.scorecard.coverage < 70
+    ? { label: "Limited evidence", tone: "developing", summary: "The score reflects assessed declarations. Missing evidence and runtime behavior still need verification." }
+    : scoreBand(a.scorecard.overall);
   const strengths = reportStrengths(a);
   const priorityFindings = [...a.findings].sort((left, right) => severityRank(left.severity) - severityRank(right.severity)).filter(finding => ["critical", "high"].includes(finding.severity));
   const displayedPriorityFindings = priorityFindings.length ? priorityFindings.slice(0, 5) : [...a.findings].sort((left, right) => severityRank(left.severity) - severityRank(right.severity)).slice(0, 3);
@@ -52,7 +54,7 @@ export default function Report({ params }: { params: Promise<{ id: string }> }) 
 
   return <div className="consultant-report">
     <PageHeading
-      eyebrow="MCP readiness assessment"
+      eyebrow="Free MCP Report"
       title={a.server.name || a.target.host || "MCP Assessment Report"}
       description={`${a.target.url} · ${Math.round(a.scorecard.coverage)}% evidence coverage`}
       actions={<><button className="button report-print-button" onClick={() => window.print()}><Printer size={13}/>Print</button><Link href={`/assessments/${id}`} className="button"><ArrowLeft size={13}/>Assessment details</Link></>}
@@ -134,7 +136,7 @@ export default function Report({ params }: { params: Promise<{ id: string }> }) 
         <DomainMetric label="Policy preview" value={a.policySimulation.generated ? "Available" : "Not generated"}/>
       </div>
       <DomainNarrative icon={<ShieldCheck size={15}/>} title="Assessment judgement" text={policyNarrative(a, mutatingTools, policyFindings.length)}/>
-      <p className="domain-boundary">Policy outcomes shown in the assessment are illustrative. No AgentID Runtime policy was deployed or enforced during this assessment.</p>
+      <p className="domain-boundary">Policy outcomes shown in the assessment are illustrative. No AgntID Runtime policy was deployed or enforced during this assessment.</p>
     </section>
 
     <section className="card consultant-section domain-section" aria-labelledby="operational-maturity-title">
@@ -151,7 +153,7 @@ export default function Report({ params }: { params: Promise<{ id: string }> }) 
 
     <section className="card consultant-section recommendations-section" aria-labelledby="recommendations-title">
       <ReportSectionHeading number="10" eyebrow="Prioritized remediation plan" title="Recommendations" id="recommendations-title" aside={`${a.recommendations.length} recommendations`}/>
-      <p className="recommendations-intro">Recommendations are derived from rule-backed findings. AgentID Runtime applicability indicates control fit only; it does not replace source-system remediation where that remains necessary.</p>
+      <p className="recommendations-intro">Start with these evidence-based recommendations. Optional policy previews explain possible controls; they do not replace fixes to the server.</p>
       {a.recommendations.length ? <div className="consultant-recommendations">{[...a.recommendations].sort((left, right) => severityRank(left.priority) - severityRank(right.priority)).map((recommendation, index) => <RecommendationRow key={recommendation.id} number={index + 1} recommendation={recommendation} finding={findingForRecommendation(a, recommendation)}/>)}</div> : <div className="report-empty"><CheckCircle2 size={18}/><span><strong>No recommendation was generated.</strong>The available evidence did not produce a rule-backed remediation item.</span></div>}
     </section>
 
@@ -177,12 +179,11 @@ function RecommendationRow({ number, recommendation, finding }: { number: number
     <div><dt>Current State</dt><dd>{finding?.description || recommendation.title}</dd></div>
     <div><dt>Risk</dt><dd>{finding?.whyItMatters || "The finding may reduce confidence in the server's readiness for governed agent use."}</dd></div>
     <div><dt>Recommendation</dt><dd>{recommendation.detail}</dd></div>
-    <div className="agentid-applicability"><dt>Can AgentID Runtime address this?</dt><dd><span className={`applicability-badge ${applicability.level.toLowerCase()}`}>{applicability.level}</span>{applicability.detail}</dd></div>
-  </dl></article>;
+    </dl><details className="agentid-applicability policy-preview-details"><summary>Optional AgntID policy preview</summary><p><span className={`applicability-badge ${applicability.level.toLowerCase()}`}>{applicability.level}</span>{applicability.detail}</p><p className="muted">Illustrative only. No policy was deployed or enforced.</p></details></article>;
 }
 
 function scoreBand(score: number) {
-  if (score >= 85) return { label: "Mature", tone: "strong", summary: "The observed posture is broadly ready, with focused improvements remaining." };
+  if (score >= 85) return { label: "Few observed gaps", tone: "strong", summary: "The assessed declarations produced few score penalties. Runtime behavior remains unverified." };
   if (score >= 70) return { label: "Developing", tone: "developing", summary: "The core posture is established, but material gaps should be addressed before broader use." };
   if (score >= 50) return { label: "Needs focused improvement", tone: "needs", summary: "Several readiness domains require remediation and additional evidence." };
   return { label: "Foundational gaps", tone: "needs", summary: "The observed posture requires foundational improvements before governed production use." };
@@ -202,9 +203,12 @@ function executiveInterpretation(a: Assessment) {
 }
 
 function authenticationNarrative(a: Assessment) {
+  if (a.mode === "offline" || ["not-assessed", "unavailable"].includes(a.oauth.status)) return "Authentication was not established by this assessment. Imported declarations and unavailable probes do not prove anonymous access.";
+  if (a.mode === "sample") return "Authentication information in this report is illustrative sample data, not a live observation.";
   if (a.oauth.protected && a.oauth.resourceMetadataValid && a.oauth.authorizationServerMetadataValid && a.oauth.pkceS256) return "The endpoint presents a coherent OAuth discovery posture and advertises PKCE S256. Review scopes and identity-specific authorization separately because tool-call enforcement was outside this assessment boundary.";
   if (a.oauth.protected) return "Authentication is required, but one or more expected OAuth discovery or PKCE signals were not confirmed. Review the detailed finding and endpoint configuration.";
-  return "Anonymous initialization was observed. Confirm that public catalog visibility is intentional and appropriate for the advertised capabilities.";
+  if (a.connectionStatus !== "connected") return "No identity established an MCP session. Authentication and catalog visibility need further verification.";
+  return "An MCP session was established. Review the identity exposure evidence to determine whether anonymous access was observed and intentional.";
 }
 
 function catalogNarrative(a: Assessment, gaps: number) {

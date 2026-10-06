@@ -169,3 +169,13 @@ The metadata-only boundary is clear and supported by list-based discovery. Deter
 ## Limits of this review
 
 HTTP smoke checks do not verify browser hydration, keyboard accessibility, or responsive layouts. No external live MCP server or real OAuth provider was used. Fixture OAuth tests exercise the SDK flow; the additional probes isolate confirmed lifecycle/concurrency defects. Full source-history secrets scanning, container OS/binary vulnerability scanning, transitive license inventory, hostile input fuzzing, restart-failure injection, and external penetration testing remain outstanding. No source or deployment was published, and no real credentials were used in the review probes.
+
+## Follow-up: product messaging and report trust
+
+The follow-up implementation makes Free MCP Report the primary product name, with AgntID Observatory attribution, a consistent report-generation action, explicit metadata-only and shared-workspace boundaries, and optional policy previews after recommendations.
+
+R11 is addressed for new worker-generated reports: canonical JSON is finalized after terminal state is determined, and its own artifact hash is excluded from its embedded manifest. Finalization failures yield a partial job and do not publish a running canonical snapshot. R12 is partly addressed: offline live-only stages and OAuth Markdown wording are corrected; low-coverage UI reports no longer describe the result as mature, and offline authentication text does not claim anonymous access. The separate HTTP-error/operational-probe findings remain open.
+
+Normal Go regression tests now cover report completion, partial outcomes, canonical-write failures, and unavailable OAuth wording. Playwright checks cover desktop/mobile layouts, keyboard navigation, themes, queue failures, authentication prompts, and real offline upload/export flows. This follow-up does not resolve the dependency, OAuth lifecycle, network concurrency, access-control, or other outstanding release gates. The original audit evidence remains a record of the earlier source snapshot.
+
+Validation on 2026-10-06 passed: all 44 top-level Go tests with the race detector, `go vet ./...`, frontend ESLint and TypeScript checks, production Compose builds, and all 12 Playwright cases (six scenarios on desktop and mobile Chromium). Real offline uploads verified terminal JSON state and SHA-256 hashes for all six artifacts. Light/dark landing pages and report screenshots were inspected for readability and layout. The tests used an isolated Compose project and synthetic credentials; real provider OAuth and external live MCP interoperability remain unverified.

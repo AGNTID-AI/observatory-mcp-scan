@@ -1,6 +1,6 @@
-# AgntID Observatory
+# Free MCP Report
 
-AgntID Observatory helps you understand an MCP server before an AI agent uses it. It reads the server’s advertised tools, schemas, instructions, prompts, and resource descriptions, then produces evidence, findings, and downloadable reports. It never invokes discovered tools.
+Free MCP Report, powered by AgntID Observatory, helps you understand an MCP server before connecting an AI agent. It reads the server’s advertised tools, schemas, instructions, prompts, and resource descriptions, then produces evidence, findings, and downloadable reports. It never invokes discovered tools.
 
 Use it to review anonymous exposure, compare identities, inspect tool contracts, and track catalog changes. You can connect to a live Streamable HTTP endpoint or upload a saved JSON snapshot. No LLM or model API key is required for the deterministic analysis.
 
@@ -66,7 +66,7 @@ The Next.js development server proxies `/api/v1` to `http://localhost:8080`.
 - Metadata content-integrity checks inspect server instructions, tools, schemas, prompts, and resource descriptions for explainable instruction-override, credential, egress, deception, and execution indicators.
 - Per-tool contract readiness distinguishes observed declaration quality from runtime behavior that cannot be proven without invocation.
 - Catalog fingerprints are compared with a recent completed or partial assessment for the same target, producing field-level drift and AgntID policy impact. The current baseline lookup has limitations described in the feature guide.
-- Offline mode imports metadata-only JSON snapshots for CI or unreachable environments. Live-only evidence is unavailable; some stage labels currently show “completed” incorrectly (see the release review).
+- Offline mode imports metadata-only JSON snapshots for CI or unreachable environments. Live-only stages are marked “not assessed,” with unavailable evidence.
 - Observatory highlights dangerous anonymous exposure and cross-tool risk chains, then previews read-only, read-write, and protected AgntID policy outcomes.
 - Transport, authentication, authorization, protocol, tool classification, context, AI readiness, and bounded operational engines emit independent evidence.
 - Findings come from YAML metadata and Rego policies in `rules/public`.

@@ -1,6 +1,6 @@
-# Using AgntID Observatory
+# Using Free MCP Report
 
-Observatory reads what an MCP server advertises and explains the risks and quality of those declarations. It does not execute tools, enforce policy on the target, or prove that a server behaves safely at runtime.
+Free MCP Report, powered by AgntID Observatory, reads what an MCP server advertises and explains the risks and quality of those declarations. It does not execute tools, enforce policy on the target, or prove that a server behaves safely at runtime.
 
 ## Choose an assessment source
 
@@ -60,7 +60,7 @@ OAuth metadata inspection is separate from browser authorization. A posture-only
 
 Read **coverage** alongside the overall score. A score of 100 with low coverage means the assessed evidence produced no score penalties; it does not certify the unassessed parts. Evidence distinguishes measured, imported, sample, inferred, and unavailable sources. Keep connection status separate from pipeline completion: a partial assessment can still generate a report after a connection failure.
 
-Current offline stages sometimes display “completed” despite unavailable evidence. The Markdown report can also incorrectly describe an anonymous OAuth probe that never ran. Trust the source mode and underlying evidence, and consult the release review before publishing reports.
+Offline live-only stages are marked “not assessed.” The report explains that imported declarations cannot establish authentication or runtime authorization. Read the source mode and evidence before interpreting a result.
 
 ## Offline assessment through the API
 
@@ -109,7 +109,7 @@ Every normally completed assessment generates:
 | `assessment.json` | Machine-readable assessment data |
 | `assessment.sarif` | SARIF 2.1.0 findings for compatible analysis tooling |
 
-The JSON export currently snapshots the pipeline before its final status is saved, so it can contain `running` and 95% progress for a completed assessment. Use the detail endpoint for terminal status until fixed. Hashes and sizes accompany the artifact list; verify them when transporting reports.
+Canonical JSON is finalized once the terminal assessment state is known. Its artifact list includes the other five reports and excludes its own entry to avoid a self-referential hash. The detail endpoint supplies the full artifact manifest, including the JSON hash and size; verify those when transporting reports.
 
 ## Configuration and data
 

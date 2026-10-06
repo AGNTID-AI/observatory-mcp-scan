@@ -36,22 +36,22 @@ const coverage = [
   {
     icon: Layers3,
     title: "Metadata & catalog",
-    detail: "Capabilities, tools, prompts, and resources.",
+    detail: "What tools, prompts, and resource descriptions the server advertises.",
   },
   {
     icon: Braces,
     title: "Contracts & schemas",
-    detail: "Descriptions, constraints, outputs, and declared effects.",
+    detail: "How clearly tools describe their inputs, outputs, and effects.",
   },
   {
     icon: Fingerprint,
     title: "Authentication & identity",
-    detail: "Access methods and identity-visible catalog differences.",
+    detail: "Anonymous visibility, authentication signals, and catalog differences between identities.",
   },
   {
     icon: Activity,
-    title: "Operational signals",
-    detail: "Policy gaps, context load, and catalog changes.",
+    title: "Readiness & next steps",
+    detail: "Context estimates, catalog changes, and recommendations to review.",
   },
 ];
 
@@ -94,10 +94,11 @@ export default function Dashboard() {
       <section className="dashboard-chapter dashboard-hero" aria-labelledby="dashboard-title">
         <div className="dashboard-chapter-inner">
           <div className="dashboard-hero-copy">
-            <div className="dashboard-kicker"><Radar size={14} /> FREE MCP TOOL INTELLIGENCE REPORT</div>
-            <h1 id="dashboard-title">Understand What Your MCP Server Exposes</h1>
-            <p>Generate an evidence-based report on your tools, schemas, authentication, identity exposure, and operational signals.</p>
+            <div className="dashboard-kicker"><Radar size={14} /> FREE MCP REPORT</div>
+            <h1 id="dashboard-title">Understand your MCP server before connecting an AI agent.</h1>
+            <p>Get a free report on advertised capabilities, security signals, and tool readiness, with evidence and practical recommendations.</p>
             <QuickAssessmentLauncher />
+            <p className="dashboard-scope-note">A metadata review, not a runtime security certification. Reports are visible to everyone with access to this workspace.</p>
           </div>
         </div>
       </section>
@@ -107,7 +108,7 @@ export default function Dashboard() {
           <div className="dashboard-section-heading">
             <div>
               <div className="section-label">Report contents</div>
-              <h2 id="coverage-title">What&apos;s in Your Report</h2>
+              <h2 id="coverage-title">What your report tells you</h2>
             </div>
           </div>
           <div className="coverage-grid">
@@ -128,15 +129,15 @@ export default function Dashboard() {
           <div className="dashboard-section-heading dashboard-workspace-heading">
             <div>
               <div className="section-label">Workspace intelligence</div>
-              <h2 id="workspace-title">Your report workspace</h2>
+              <h2 id="workspace-title">Reports in this workspace</h2>
             </div>
-            <p>Report activity, history, and operational guidance in one clearly separated workspace section.</p>
+            <p>Review recent assessments and return to their findings and recommendations.</p>
           </div>
 
           <div className="workspace-proof" aria-labelledby="proof-title">
             <div className="dashboard-subsection-heading">
               <div><div className="section-label">Report activity</div><h3 id="proof-title">Clear signals, kept in context</h3></div>
-              <p>A concise view of this workspace—not a wall of alarming numbers.</p>
+              <p>Includes live assessments, uploaded metadata, and illustrative examples.</p>
             </div>
 
             {!data && !error ? (
@@ -150,9 +151,9 @@ export default function Dashboard() {
               <>
                 <div className="trust-stats">
                   <TrustStat label="MCP tools executed" value="0" note="Always" icon={<ShieldCheck size={15} />} featured />
-                  <TrustStat label="Reports created" value={`${data.totalAssessments}`} note="Across all methods" icon={<FileCheck2 size={15} />} />
-                  <TrustStat label="Catalogs assessed" value={`${data.completed}`} note="Successfully discovered" icon={<CheckCircle2 size={15} />} />
-                  <TrustStat label="Average score" value={`${data.averageScore}/100`} note="Across analyzed servers" icon={<Radar size={15} />} />
+                  <TrustStat label="Assessments started" value={`${data.totalAssessments}`} note="All sources and statuses" icon={<FileCheck2 size={15} />} />
+                  <TrustStat label="Assessments completed" value={`${data.completed}`} note="Pipeline completed" icon={<CheckCircle2 size={15} />} />
+                  <TrustStat label="Average score" value={`${data.averageScore}/100`} note="Read alongside coverage" icon={<Radar size={15} />} />
                 </div>
                 <div className="assessment-methods">
                   <span>Report sources</span>
@@ -168,7 +169,7 @@ export default function Dashboard() {
             <div className="history-section" aria-labelledby="history-title">
             <Card
               title="Report history"
-              description="Return to a previous Tool Intelligence Report or review the latest activity."
+              description="Return to a previous MCP report or check an assessment in progress."
               action={<Link href="/assessments" className="button ghost">View all <ArrowRight size={13} /></Link>}
             >
               {data.recent.length ? (
@@ -177,7 +178,7 @@ export default function Dashboard() {
                     <thead><tr><th>Target</th><th>Source</th><th>Status</th><th>Score</th><th>Started</th></tr></thead>
                     <tbody>
                       {data.recent.map((item) => {
-                        const assessed = !["authentication-required", "connection-failed"].includes(item.connectionStatus);
+                        const assessed = ["completed", "partial"].includes(item.status) && !["authentication-required", "connection-failed"].includes(item.connectionStatus);
                         return (
                           <tr key={item.id}>
                             <td><Link href={`/assessments/${item.id}`} className="target-cell"><strong>{item.target.host || item.target.url}</strong></Link></td>
@@ -194,8 +195,8 @@ export default function Dashboard() {
               ) : (
                 <div className="history-empty">
                   <Radar size={21} />
-                  <div><strong>No reports yet</strong><span>Your completed Tool Intelligence Reports will appear here.</span></div>
-                  <Link href="/assessments/new" className="button primary">Generate Free Report <ArrowRight size={13} /></Link>
+                  <div><strong>No reports yet</strong><span>Your MCP assessments will appear here as you create them.</span></div>
+                  <Link href="/assessments/new" className="button primary">Generate your MCP report <ArrowRight size={13} /></Link>
                 </div>
               )}
             </Card>
@@ -205,9 +206,9 @@ export default function Dashboard() {
           <div className="runtime-context">
             <span><Sparkles size={17} /></span>
             <div>
-              <div className="section-label">When report signals need runtime controls</div>
-              <h3>Your report shows where additional enforcement can help.</h3>
-              <p>Where a gap maps to an AgentID Runtime capability, the report explains the connection in context.</p>
+              <div className="section-label">Understanding the findings</div>
+              <h3>Start with the evidence and recommended next steps.</h3>
+              <p>Policy previews illustrate possible controls. They do not change or enforce policy on your server.</p>
             </div>
             <Link className="button ghost" href="/rules">View report criteria <ArrowRight size={13} /></Link>
           </div>
@@ -222,19 +223,19 @@ function PublicIntelligence({reports}:{reports:PublicReportPreview[] | null}) {
     <div className="dashboard-chapter-inner">
       <div className="dashboard-section-heading compact">
         <div>
-          <div className="section-label">Public MCP intelligence</div>
-          <h2 id="public-intelligence-title">Explore Public Reports</h2>
+          <div className="section-label">Workspace reports</div>
+          <h2 id="public-intelligence-title">Explore recent live reports</h2>
         </div>
-        <Link className="button ghost" href="/directory">View MCP Directory <ArrowRight size={13}/></Link>
+        <Link className="button ghost" href="/directory">Browse MCP reports <ArrowRight size={13}/></Link>
       </div>
-      {reports === null ? <div className="public-intelligence-grid" role="status" aria-live="polite" aria-busy="true"><span className="sr-only">Loading public MCP reports</span>{[1,2,3].map(item=><div className="public-intelligence-card skeleton-public-card" aria-hidden="true" key={item}><span className="skeleton"/><span className="skeleton"/><span className="skeleton"/></div>)}</div> : reports.length === 0 ? <div className="public-intelligence-empty"><LibraryBig size={18}/><span>Public Tool Intelligence Reports will appear here as MCP endpoints are analyzed.</span><Link href="/directory">Open directory</Link></div> : <div className="public-intelligence-grid" aria-label="Public MCP Tool Intelligence Reports">{reports.map(report=><PublicIntelligenceCard report={report} key={report.summary.id}/>)}</div>}
+      {reports === null ? <div className="public-intelligence-grid" role="status" aria-live="polite" aria-busy="true"><span className="sr-only">Loading public MCP reports</span>{[1,2,3].map(item=><div className="public-intelligence-card skeleton-public-card" aria-hidden="true" key={item}><span className="skeleton"/><span className="skeleton"/><span className="skeleton"/></div>)}</div> : reports.length === 0 ? <div className="public-intelligence-empty"><LibraryBig size={18}/><span>Live MCP reports will appear here after a server connects and its assessment finishes.</span><Link href="/directory">Open directory</Link></div> : <div className="public-intelligence-grid" aria-label="Live MCP reports in this workspace">{reports.map(report=><PublicIntelligenceCard report={report} key={report.summary.id}/>)}</div>}
     </div>
   </section>;
 }
 
 function PublicIntelligenceCard({report}:{report:PublicReportPreview}) {
   const score = report.assessment.scorecard.overall;
-  return <Link className="public-intelligence-card" href={`/reports/${report.summary.id}`} aria-label={`Open the public Tool Intelligence Report for ${report.name}`}>
+  return <Link className="public-intelligence-card" href={`/reports/${report.summary.id}`} aria-label={`Open the MCP report for ${report.name}`}>
     <div className="public-intelligence-header">
       <span className="public-server-mark">{serverInitials(report.name)}</span>
       <div><strong>{report.name}</strong><span>{report.host}</span></div>
@@ -414,25 +415,25 @@ function QuickAssessmentLauncher() {
   };
 
   const busy = phase === "checking" || phase === "oauth";
-  return <form className="dashboard-assessment-launcher" onSubmit={submit} aria-label="Generate a free MCP Tool Intelligence Report">
+  return <form className="dashboard-assessment-launcher" onSubmit={submit} aria-label="Generate your MCP report">
     <div className="dashboard-launcher-heading">
       <span><Globe2 size={17}/></span>
-      <div><strong>Scan Your MCP Server</strong><small>Enter your MCP server URL to generate a free Tool Intelligence Report.</small></div>
+      <div><strong>Generate your MCP report</strong><small>Enter the server’s Streamable HTTP endpoint. Add access details if it requires authentication.</small></div>
     </div>
     <label htmlFor="dashboard-mcp-url">MCP Server URL</label>
     <div className="dashboard-url-row">
       <span aria-hidden="true"><Globe2 size={17}/></span>
       <input id="dashboard-mcp-url" className="input" required type="url" placeholder="https://mcp.example.com/mcp" value={url} onChange={event=>resetForURL(event.target.value)}/>
       {phase !== "authentication" && <button className="button primary dashboard-primary-cta" disabled={busy || !url.trim()} aria-busy={busy}>
-        {busy ? <><LoaderCircle className="animate-spin" size={15}/>{phase === "oauth" ? "Waiting for sign-in…" : "Checking access…"}</> : <>Generate Free Report <ArrowRight size={15}/></>}
+        {busy ? <><LoaderCircle className="animate-spin" size={15}/>{phase === "oauth" ? "Waiting for sign-in…" : "Checking access…"}</> : <>Generate your MCP report <ArrowRight size={15}/></>}
       </button>}
     </div>
-    <div className="dashboard-launcher-assurance"><ShieldCheck size={13}/><span>Metadata only · No tool execution · Auth only if needed</span></div>
+    <div className="dashboard-launcher-assurance"><ShieldCheck size={13}/><span>We inspect advertised metadata. We never execute your tools.</span></div>
 
     {phase === "checking" && <div className="dashboard-launcher-status" role="status" aria-live="polite"><LoaderCircle className="animate-spin" size={16}/><span><strong>Connecting safely</strong>Checking whether the endpoint exposes metadata anonymously.</span></div>}
 
     {phase === "authentication" && <div className="dashboard-auth-step" aria-live="polite">
-      <div className="dashboard-auth-heading"><KeyRound size={17}/><span><strong>This endpoint requires authentication</strong>Choose one method to continue generating the Tool Intelligence Report.</span></div>
+      <div className="dashboard-auth-heading"><KeyRound size={17}/><span><strong>This endpoint requires authentication</strong>Choose an access method to continue generating your MCP report.</span></div>
       <div className="dashboard-auth-methods" role="tablist" aria-label="Authentication method">
         <button type="button" role="tab" aria-selected={authMethod === "token"} className={authMethod === "token" ? "active" : ""} onClick={()=>{setAuthMethod("token");setError("")}}><KeyRound size={14}/>Bearer token</button>
         <button type="button" role="tab" aria-selected={authMethod === "oauth"} className={authMethod === "oauth" ? "active" : ""} onClick={()=>{setAuthMethod("oauth");setError("")}}><UserRoundCheck size={14}/>OAuth</button>
@@ -440,16 +441,16 @@ function QuickAssessmentLauncher() {
       {error && <div className="dashboard-launcher-error" role="alert"><ShieldAlert size={14}/>{error}</div>}
       {authMethod === "token" ? <div className="dashboard-token-row" role="tabpanel">
         <input aria-label="Bearer token" className="input" required type="password" autoComplete="off" placeholder="Paste bearer token" value={token} onChange={event=>setToken(event.target.value)}/>
-        <button className="button primary" disabled={!token.trim()}>Generate report <ArrowRight size={14}/></button>
+        <button className="button primary" disabled={!token.trim()}>Generate your MCP report <ArrowRight size={14}/></button>
       </div> : <div className="dashboard-oauth-row" role="tabpanel">
         <span>{oauthSession?.error || "Sign in on the server's authorization page, then report generation continues automatically."}</span>
         <button type="button" className="button primary" onClick={()=>void connectOAuth()}><ExternalLink size={14}/>Connect with OAuth</button>
       </div>}
-      <div className="dashboard-auth-footer"><LockKeyhole size={12}/>Credentials are used only for this report and excluded from report evidence.</div>
+      <div className="dashboard-auth-footer"><LockKeyhole size={12}/>Use credentials scoped to this server. Access details are encrypted for the assessment.</div>
     </div>}
 
     {phase === "error" && <div className="dashboard-launcher-error dashboard-launcher-error-block" role="alert"><ShieldAlert size={15}/><span><strong>We could not connect to that endpoint.</strong>{error}</span><button type="button" className="button" onClick={()=>void queueAssessment()}>Try again</button></div>}
-    <div className="dashboard-launcher-advanced"><Link href={`/assessments/new${url ? `?target=${encodeURIComponent(url)}` : ""}`}>Advanced options</Link> — Headers, uploads, or multiple identities</div>
+    <div className="dashboard-launcher-advanced"><Link href={`/assessments/new${url ? `?target=${encodeURIComponent(url)}` : ""}`}>Upload metadata or compare identities</Link> · Includes custom headers</div>
   </form>;
 }
 

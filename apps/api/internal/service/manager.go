@@ -252,7 +252,10 @@ func (m *Manager) run(parent context.Context, a *domain.Assessment) {
 			run.Status = "completed"
 			run.Message = fmt.Sprintf("%s completed", engine.Name())
 			merge(a, result)
-			if engine.ID() == "authorization" && a.Facts["authorization.assessed"] != true {
+			if a.Facts["engine."+engine.ID()+".assessed"] == false {
+				run.Status = "not-assessed"
+				run.Message = engine.Name() + " requires a live target; not assessed from imported metadata"
+			} else if engine.ID() == "authorization" && a.Facts["authorization.assessed"] != true {
 				run.Status = "not-assessed"
 				run.Message = "Tool execution authorization was not assessed; catalog visibility only"
 			}
@@ -264,7 +267,8 @@ func (m *Manager) run(parent context.Context, a *domain.Assessment) {
 	if m.runRules(ctx, a) {
 		partial = true
 	}
-	if m.runReports(ctx, a) {
+	reportFailed := m.runReports(ctx, a)
+	if reportFailed {
 		partial = true
 	}
 	now := time.Now().UTC()
@@ -277,6 +281,18 @@ func (m *Manager) run(parent context.Context, a *domain.Assessment) {
 		a.Status = domain.StatusCompleted
 	}
 	a.ConnectionStatus = a.DeriveConnectionStatus()
+	if !reportFailed {
+		if err := m.reporter.Finalize(ctx, a); err != nil {
+			a.Status = domain.StatusPartial
+			run := findRun(a, "report-generation")
+			run.Status = "partial"
+			run.Message = "Canonical report could not be finalized"
+			m.logger.Error("finalize canonical report", "assessment_id", a.ID, "error", err)
+			_, _ = m.events.Append(ctx, a.ID, "error", map[string]any{"stage": run.ID, "detail": run.Message})
+		} else {
+			_, _ = m.events.Append(ctx, a.ID, "artifact", a.Artifacts[0])
+		}
+	}
 	_ = m.repo.Save(ctx, a)
 	_, _ = m.events.Append(ctx, a.ID, "completed", map[string]any{"status": a.Status, "score": a.Scorecard.Overall, "coverage": a.Scorecard.Coverage})
 }
@@ -330,7 +346,7 @@ func (m *Manager) runReports(ctx context.Context, a *domain.Assessment) bool {
 	} else {
 		a.Artifacts = artifacts
 		run.Status = "completed"
-		run.Message = fmt.Sprintf("Generated %d report artifacts", len(artifacts))
+		run.Message = fmt.Sprintf("Generated %d report artifacts", len(artifacts)+1)
 		for _, artifact := range artifacts {
 			_, _ = m.events.Append(ctx, a.ID, "artifact", artifact)
 		}
@@ -440,9 +456,9 @@ func summarize(a *domain.Assessment) {
 		a.TechnicalSummary = "No configured identity completed MCP initialization. No tool catalog was discovered and no MCP tools were invoked."
 		return
 	}
-	risk := "measured risk is low"
+	risk := "no critical or high-severity findings matched the available evidence"
 	if a.Risk.Critical > 0 || a.Risk.High > 0 {
-		risk = "priority security risks require attention"
+		risk = "critical or high-severity findings require attention"
 	} else if a.Risk.Medium > 0 {
 		risk = "several moderate improvements are recommended"
 	}

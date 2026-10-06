@@ -90,7 +90,7 @@ export default function RuleExplorer() {
     <section className="card rule-explorer-controls" aria-label="Rule filters">
       <div className="rule-explorer-search"><Search size={15}/><input className="input" placeholder="Search by protection, issue, or rule ID…" value={query} onChange={event => setQuery(event.target.value)}/></div>
       <label><span>Severity</span><select className="select" value={severity} onChange={event => setSeverity(event.target.value)}><option value="all">All severities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="info">Informational</option></select></label>
-      <label><span>AgentID Runtime</span><select className="select" value={support} onChange={event => setSupport(event.target.value)}><option value="all">All support levels</option><option>Supported</option><option>Partial</option><option>Not primary</option></select></label>
+      <label><span>AgntID Runtime</span><select className="select" value={support} onChange={event => setSupport(event.target.value)}><option value="all">All support levels</option><option>Supported</option><option>Partial</option><option>Not primary</option></select></label>
     </section>
 
     <div className="rule-results-summary"><strong>{filtered.length} rules</strong><span>across {grouped.length} {grouped.length === 1 ? "capability" : "capabilities"}</span></div>
@@ -125,7 +125,7 @@ function CapabilityRule({ rule, index }: { rule: Rule; index: number }) {
       </div>
       <div className="rule-runtime-support">
         <span><BadgeCheck size={16}/></span>
-        <div><div><strong>AgentID Runtime support</strong><span className={`runtime-support-badge ${runtimeClass(runtime.level)}`}>{runtime.level}</span></div><p>{runtime.detail}</p></div>
+        <div><div><strong>AgntID Runtime support</strong><span className={`runtime-support-badge ${runtimeClass(runtime.level)}`}>{runtime.level}</span></div><p>{runtime.detail}</p></div>
       </div>
       <div className="rule-recommended-response"><strong>Recommended response</strong><p>{rule.recommendation}</p></div>
       <details className="rule-technical-detail"><summary>Technical rule details <ChevronDown size={13}/></summary><dl><div><dt>Rule ID</dt><dd>{rule.id}</dd></div><div><dt>Source category</dt><dd>{rule.category}</dd></div><div><dt>Classification</dt><dd>{humanize(rule.classification || "posture")}</dd></div><div><dt>Dimension</dt><dd>{humanize(rule.dimension)}</dd></div></dl>{rule.rego && <details className="rego-disclosure"><summary>View Rego source</summary><pre>{rule.rego}</pre></details>}</details>

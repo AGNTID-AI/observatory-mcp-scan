@@ -36,7 +36,7 @@ importers:
         version: 0.543.0(react@19.1.0)
       next:
         specifier: 15.5.2
-        version: 15.5.2(react-dom@19.1.0)(react@19.1.0)
+        version: 15.5.2(@playwright/test@1.63.0)(react-dom@19.1.0)(react@19.1.0)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.1.0)(react@19.1.0)
@@ -59,6 +59,9 @@ importers:
       '@eslint/eslintrc':
         specifier: ^3
         version: 3.3.6
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.3.3
@@ -622,6 +625,13 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
     dev: true
+
+  /@playwright/test@1.63.0:
+    resolution: {integrity: sha512-oxMK4vllB9RK5NQ2l1pq1IfOf2AvnEuj/vYGDj0H2nMtmtZpKtCwt/l00GEO6xjGfpBNAvjovvYdCm50dRQkpQ==}
+    engines: {node: '>=20'}
+    hasBin: true
+    dependencies:
+      playwright: 1.63.0
 
   /@radix-ui/primitive@1.1.6:
     resolution: {integrity: sha512-w9hl+724uYEgCGR3bhuRepjBtrNB/6gkhCnAf58Ke+SLbHPPQqVZZB59z60roB+5H+nh3nWTcdJhQdFMEydWmw==}
@@ -3179,7 +3189,7 @@ packages:
       react-dom: 19.1.0(react@19.1.0)
     dev: false
 
-  /next@15.5.2(react-dom@19.1.0)(react@19.1.0):
+  /next@15.5.2(@playwright/test@1.63.0)(react-dom@19.1.0)(react@19.1.0):
     resolution: {integrity: sha512-H8Otr7abj1glFhbGnvUt3gz++0AF1+QoCXEBmd/6aKbfdFwrn0LpA836Ed5+00va/7HQSDD+mOoVhn3tNy3e/Q==}
     engines: {node: ^18.18.0 || ^19.8.0 || >= 20.0.0}
     deprecated: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/CVE-2025-66478 for more details.
@@ -3202,6 +3212,7 @@ packages:
         optional: true
     dependencies:
       '@next/env': 15.5.2
+      '@playwright/test': 1.63.0
       '@swc/helpers': 0.5.15
       caniuse-lite: 1.0.30001806
       postcss: 8.4.31
@@ -3366,6 +3377,18 @@ packages:
     resolution: {integrity: sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==}
     engines: {node: '>=12'}
     dev: true
+
+  /playwright-core@1.63.0:
+    resolution: {integrity: sha512-rYCsBF/M5HjUch52bbtVONEFjv6Xu8sm8h72dNlR5bzIE1fvC/bxgspzkjSfU+MweEMmPM8KJebG6nnyxo5mCg==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  /playwright@1.63.0:
+    resolution: {integrity: sha512-+7ziBLidS4NaNCdt57SUDT+wYmmd5fmiQejUic/kb+YsYSCPyOOE9sebzMjNmQrsnNpDJqd4WHvV/8lfKfUDUg==}
+    engines: {node: '>=20'}
+    hasBin: true
+    dependencies:
+      playwright-core: 1.63.0
 
   /possible-typed-array-names@1.1.0:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}

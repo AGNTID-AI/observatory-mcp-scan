@@ -473,3 +473,24 @@ body{max-width:100%;overflow-x:hidden;line-height:1.5}
   .dashboard-launcher-heading{grid-template-columns:34px minmax(0,1fr)}
   .dashboard-chapter-inner{padding-left:17px;padding-right:17px}
 }
+
+/* Product identity and report interpretation remain legible on small screens. */
+.brand-copy { min-width: 0; }
+.brand-copy strong { font-size: 15px; }
+.brand-copy span { font-size: 10px; line-height: 1.4; }
+.topbar-title span::before { content: none; }
+.dashboard-hero-copy > .dashboard-scope-note { max-width: 840px; margin: 14px 0 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
+.policy-preview-details { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+.policy-preview-details summary { cursor: pointer; font-size: 12px; font-weight: 600; }
+.policy-preview-details p { font-size: 12px; line-height: 1.6; }
+@media (max-width: 480px) {
+  .topbar-brand strong { font-size: 13px; }
+}
+
+.dashboard-launcher-heading small,
+.dashboard-assessment-launcher > label,
+.dashboard-launcher-assurance,
+.dashboard-launcher-advanced,
+.dashboard-auth-footer,
+.dashboard-launcher-status,
+.dashboard-launcher-error { font-size: 12px; line-height: 1.5; }

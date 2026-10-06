@@ -68,4 +68,5 @@ type RuleEvaluator interface {
 
 type Reporter interface {
 	Generate(context.Context, *domain.Assessment) ([]domain.Artifact, error)
+	Finalize(context.Context, *domain.Assessment) error
 }

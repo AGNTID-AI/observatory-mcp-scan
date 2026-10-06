@@ -8,8 +8,8 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AgntID Observatory",
-  description: "MCP security, protocol, and AI readiness assessment",
+  title: "Free MCP Report | AgntID Observatory",
+  description: "Understand your MCP server before connecting an AI agent. Review advertised capabilities, security signals, and tool readiness without executing tools.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

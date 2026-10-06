@@ -44,3 +44,14 @@ Explain the problem, the resulting behavior, and the checks you ran. Include a r
 Update the feature guide and API contract when behavior or payloads change. Rules should explain the evidence behind a finding and distinguish observed facts from inferred or simulated policy outcomes. Avoid implying that a advertised catalog proves tools can be executed or that a clean metadata scan establishes runtime safety.
 
 Keep generated assessment data, keys, tokens, and local environment files out of commits. `SOURCE_PROVENANCE.json` records the original imported snapshot; do not silently regenerate it to conceal changes to that snapshot.
+
+## Browser regression checks
+
+The Playwright suite checks the production UI at an existing server, on desktop and mobile Chromium. It includes real offline uploads and report downloads, so use an isolated workspace rather than a production instance. Authentication and queue-error scenarios use synthetic browser-side fixtures.
+
+```bash
+pnpm --dir apps/web exec playwright install chromium
+PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm --dir apps/web test:e2e
+```
+
+Build and start the Compose stack first. Browser system dependencies may also be required on Linux. Test output is written to ignored `test-results` and `playwright-report` directories. These checks complement the API regression tests; they do not establish readiness of the remaining security findings in the release review.

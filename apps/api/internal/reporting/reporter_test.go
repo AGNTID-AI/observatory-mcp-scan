@@ -53,3 +53,36 @@ func TestGenerateIncludesValidSARIF(t *testing.T) {
 		t.Fatal("technical report exposes analyzer jargon in empty state")
 	}
 }
+
+func TestOAuthReportDistinguishesUnavailableFromObserved(t *testing.T) {
+	for _, tc := range []struct{ name, mode, status, want string }{
+		{"offline", "offline", "", "OAuth protection was not assessed."},
+		{"unavailable", "live", "unavailable", "OAuth protection was not assessed."},
+		{"unassessed", "live", "not-assessed", "OAuth protection was not assessed."},
+		{"observed", "live", "not-protected", "The anonymous initialization probe did not observe an OAuth requirement."},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			store := storage.FileArtifacts{Root: t.TempDir()}
+			a := &domain.Assessment{ID: "fixture", Mode: tc.mode, OAuth: domain.OAuthPosture{Status: tc.status}}
+			a.Normalize()
+			if _, err := (reporting.Generator{Store: store}).Generate(context.Background(), a); err != nil {
+				t.Fatal(err)
+			}
+			reader, _, err := store.Open(context.Background(), a.ID, "technical-report.md")
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer reader.Close()
+			body, err := io.ReadAll(reader)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !bytes.Contains(body, []byte(tc.want)) {
+				t.Fatalf("missing accurate OAuth explanation: %s", body)
+			}
+			if bytes.Contains(body, []byte("OAuth protection was not required")) {
+				t.Fatal("report overstates missing OAuth evidence")
+			}
+		})
+	}
+}
